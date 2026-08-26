@@ -9,47 +9,106 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 <style>
-/* efeito de derretimento no hover das bolinhas do fluxo. está inline de propósito:
-   assim não depende do cache do style.css externo, e vence a regra de hover antiga
-   (mesma especificidade, mas declarada depois do <link>). */
-.flowmap-node {
-  position: relative;
-  transform-origin: 50% 0%;
-  transition: border-radius 0.45s ease, transform 0.45s ease;
+/* -------- animações do flowmap: uma por etapa, ligada ao que a etapa faz --------
+   ficam inline junto da marcação que tem as classes anim-*, e não no style.css,
+   pra ter um lugar só de verdade (e não depender do cache do CSS externo). */
+.flowmap {
+  /* respiro extra em cima: a bolinha do "Briefing Recebido" cai de fora, e a do
+     "Publicado" sobe — sem isso o overflow do .flowmap corta as duas. */
+  padding: 28px 4px 18px;
 }
-.flowmap-node::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 92%;
-  width: 8px;
-  height: 0;
-  background: var(--fcolor, var(--text-soft));
-  border-radius: 50% 50% 58% 58%;
-  transform: translateX(-50%);
+.flowmap-node { position: relative; }
+.flowmap-step a:hover .flowmap-node { animation-fill-mode: both; }
+
+/* 01 Formulário — preenche de baixo pra cima, como um formulário sendo respondido */
+.anim-preenche { overflow: hidden; }
+.anim-preenche::before {
+  content: ""; position: absolute; left: -1px; right: -1px; top: 0;
+  height: 0; background: var(--surface);
+}
+.flowmap-step a:hover .anim-preenche::before { animation: fm-preenche 0.85s ease-out; }
+@keyframes fm-preenche { 0% { height: 100%; } 100% { height: 0; } }
+
+/* 02 Briefing Recebido — cai de cima e amassa ao aterrissar (squash) */
+.anim-chega { transform-origin: 50% 100%; }
+.flowmap-step a:hover .anim-chega { animation: fm-chega 0.75s cubic-bezier(.3,1.4,.5,1); }
+@keyframes fm-chega {
+  0%   { transform: translateY(-22px) scaleY(1.15) scaleX(0.9); }
+  40%  { transform: translateY(0) scaleY(1) scaleX(1); }
+  55%  { transform: translateY(0) scaleY(0.7) scaleX(1.3); }
+  72%  { transform: translateY(-5px) scaleY(1.1) scaleX(0.93); }
+  100% { transform: translateY(0) scaleY(1) scaleX(1); }
+}
+
+/* 03 Validar Conceito — a ideia "acende": pulsa e solta anéis */
+.anim-ideia::after {
+  content: ""; position: absolute; inset: -3px;
+  border-radius: 50%; border: 2px solid var(--fcolor, var(--text-soft));
   opacity: 0;
-  pointer-events: none;
 }
-.flowmap-step a:hover .flowmap-node {
-  border-radius: 38% 62% 24% 76% / 78% 60% 40% 22%;
-  transform: scaleY(0.62) scaleX(1.28) translateY(5px);
+.flowmap-step a:hover .anim-ideia { animation: fm-pulso 1.1s ease-in-out infinite; }
+.flowmap-step a:hover .anim-ideia::after { animation: fm-anel 1.1s ease-out infinite; }
+@keyframes fm-pulso {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.1); }
 }
-.flowmap-step a:hover .flowmap-node::after {
-  animation: flowmap-pingo 1.5s ease-in infinite;
+@keyframes fm-anel {
+  0%   { transform: scale(1);   opacity: 0.8; }
+  100% { transform: scale(2.1); opacity: 0; }
 }
-/* a gota se forma na base da bolinha, estica, solta e cai passando das letras */
-@keyframes flowmap-pingo {
-  0%   { height: 2px;  opacity: 0;    transform: translateX(-50%) translateY(0)    scaleX(1); }
-  16%  { height: 8px;  opacity: 1;    transform: translateX(-50%) translateY(0)    scaleX(1); }
-  30%  { height: 13px; opacity: 1;    transform: translateX(-50%) translateY(1px)  scaleX(0.78); }
-  42%  { height: 9px;  opacity: 1;    transform: translateX(-50%) translateY(14px) scaleX(1); }
-  72%  { height: 9px;  opacity: 0.95; transform: translateX(-50%) translateY(38px) scaleX(0.95); }
-  100% { height: 9px;  opacity: 0;    transform: translateX(-50%) translateY(56px) scaleX(0.88); }
+
+/* 04 Validando Estrutura — vira quadrado e gira: a estrutura sendo montada */
+.flowmap-step a:hover .anim-monta { animation: fm-monta 1s ease-in-out; }
+@keyframes fm-monta {
+  0%   { border-radius: 50%; transform: rotate(0deg); }
+  45%  { border-radius: 5px; transform: rotate(45deg); }
+  70%  { border-radius: 5px; transform: rotate(45deg); }
+  100% { border-radius: 50%; transform: rotate(90deg); }
 }
-/* respiro embaixo pra gota cair sem ser cortada pelo overflow do .flowmap */
-.flowmap { padding-bottom: 34px; }
+
+/* 05 Validar Copy — estica virando uma linha de texto */
+.flowmap-step a:hover .anim-escreve { animation: fm-escreve 0.9s ease-in-out; }
+@keyframes fm-escreve {
+  0%   { transform: scaleX(1);   border-radius: 50%; }
+  45%  { transform: scaleX(2.2); border-radius: 999px; }
+  70%  { transform: scaleX(2.2); border-radius: 999px; }
+  100% { transform: scaleX(1);   border-radius: 50%; }
+}
+
+/* 06 Validar Mockup — vira como uma carta, mostrando a prova visual */
+.anim-vira { }
+.flowmap-step a:hover .anim-vira { animation: fm-vira 0.9s ease-in-out; }
+@keyframes fm-vira {
+  0%   { transform: perspective(200px) rotateY(0deg); }
+  100% { transform: perspective(200px) rotateY(360deg); }
+}
+
+/* 07 Validar Derivações — se multiplica em várias peças */
+.flowmap-step a:hover .anim-multiplica { animation: fm-multiplica 1.1s ease-in-out; }
+@keyframes fm-multiplica {
+  0%, 100% {
+    box-shadow: 0 0 0 2px var(--fcolor, var(--text-soft)),
+                0 0 0 -8px var(--fcolor, var(--text-soft)),
+                0 0 0 -8px var(--fcolor, var(--text-soft));
+  }
+  50% {
+    box-shadow: 0 0 0 2px var(--fcolor, var(--text-soft)),
+                -15px 0 0 -8px var(--fcolor, var(--text-soft)),
+                 15px 0 0 -8px var(--fcolor, var(--text-soft));
+  }
+}
+
+/* 08 Publicado — decola tipo balão, dá uma balançada e volta */
+.flowmap-step a:hover .anim-voa { animation: fm-voa 1.4s ease-in-out; }
+@keyframes fm-voa {
+  0%   { transform: translateY(0) scale(1) rotate(0deg); }
+  20%  { transform: translateY(-4px) scaleX(0.88) scaleY(1.14) rotate(0deg); }
+  55%  { transform: translateY(-24px) scaleX(1) scaleY(1) rotate(7deg); }
+  75%  { transform: translateY(-18px) rotate(-5deg); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); }
+}
 </style>
 </head>
 <body>
@@ -72,56 +131,56 @@
     <div class="flowmap">
       <div class="flowmap-step">
         <a href="#criar-task">
-          <span class="flowmap-node" style="--fcolor:#87909e"></span>
+          <span class="flowmap-node anim-preenche" style="--fcolor:#87909e"></span>
           <span class="flowmap-label">Formulário</span>
         </a>
       </div>
       <div class="flowmap-connector"></div>
       <div class="flowmap-step">
         <a href="#criar-task">
-          <span class="flowmap-node" style="--fcolor:#5f55ee"></span>
+          <span class="flowmap-node anim-chega" style="--fcolor:#5f55ee"></span>
           <span class="flowmap-label">Briefing<br>Recebido</span>
         </a>
       </div>
       <div class="flowmap-connector"></div>
       <div class="flowmap-step">
         <a href="#conceito">
-          <span class="flowmap-node" style="--fcolor:#ee5e99"></span>
+          <span class="flowmap-node anim-ideia" style="--fcolor:#ee5e99"></span>
           <span class="flowmap-label">Validar<br>Conceito</span>
         </a>
       </div>
       <div class="flowmap-connector"></div>
       <div class="flowmap-step">
         <a href="#estrutura">
-          <span class="flowmap-node" style="--fcolor:#656f7d"></span>
+          <span class="flowmap-node anim-monta" style="--fcolor:#656f7d"></span>
           <span class="flowmap-label">Validando<br>Estrutura</span>
         </a>
       </div>
       <div class="flowmap-connector"></div>
       <div class="flowmap-step">
         <a href="#copy">
-          <span class="flowmap-node" style="--fcolor:#e16b16"></span>
+          <span class="flowmap-node anim-escreve" style="--fcolor:#e16b16"></span>
           <span class="flowmap-label">Validar<br>Copy</span>
         </a>
       </div>
       <div class="flowmap-connector"></div>
       <div class="flowmap-step">
         <a href="#mockup">
-          <span class="flowmap-node" style="--fcolor:#0091ff"></span>
+          <span class="flowmap-node anim-vira" style="--fcolor:#0091ff"></span>
           <span class="flowmap-label">Validar<br>Mockup</span>
         </a>
       </div>
       <div class="flowmap-connector"></div>
       <div class="flowmap-step">
         <a href="#pecas">
-          <span class="flowmap-node" style="--fcolor:#d33d44"></span>
+          <span class="flowmap-node anim-multiplica" style="--fcolor:#d33d44"></span>
           <span class="flowmap-label">Validar<br>Derivações</span>
         </a>
       </div>
       <div class="flowmap-connector"></div>
       <div class="flowmap-step">
         <a href="#publicado">
-          <span class="flowmap-node" style="--fcolor:#008844"></span>
+          <span class="flowmap-node anim-voa" style="--fcolor:#008844"></span>
           <span class="flowmap-label">Publicado</span>
         </a>
       </div>
