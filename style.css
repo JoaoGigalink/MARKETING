@@ -206,6 +206,26 @@ code, .mono { font-family: var(--font-mono); }
   box-shadow: 0 0 0 2px var(--fcolor, var(--text-soft));
   transition: transform 0.15s ease;
   flex: 0 0 auto;
+  position: relative;
+  animation: flowmap-melt 6s ease-in-out infinite;
+  transform-origin: 50% 0%;
+}
+/* alterna a fase da animação a cada 2 nós (steps ficam nas posições ímpares,
+   os conectores nas pares) pra não derreterem todos em sincronia */
+.flowmap-step:nth-child(4n+3) .flowmap-node { animation-delay: -3s; }
+.flowmap-node::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 7px;
+  height: 0;
+  background: var(--fcolor, var(--text-soft));
+  border-radius: 0 0 50% 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  animation: flowmap-drip 6s ease-in infinite;
+  animation-delay: inherit;
 }
 .flowmap-step a:hover .flowmap-node { transform: scale(1.12); }
 .flowmap-label {
@@ -222,6 +242,21 @@ code, .mono { font-family: var(--font-mono); }
   height: 2px;
   background: var(--border);
   margin-top: 17px;
+}
+@keyframes flowmap-melt {
+  0%, 100% { border-radius: 50%; transform: scaleY(1) scaleX(1); }
+  30% { border-radius: 46% 54% 58% 42% / 60% 58% 42% 40%; transform: scaleY(1.05) scaleX(0.96); }
+  55% { border-radius: 42% 58% 50% 50% / 64% 48% 52% 36%; transform: scaleY(0.93) scaleX(1.06); }
+  80% { border-radius: 56% 44% 46% 54% / 44% 60% 40% 56%; transform: scaleY(1.02) scaleX(0.98); }
+}
+@keyframes flowmap-drip {
+  0%, 58% { height: 0; opacity: 0; }
+  68% { height: 5px; opacity: 0.85; }
+  82% { height: 9px; opacity: 0.5; top: 106%; }
+  96%, 100% { height: 3px; opacity: 0; top: 120%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flowmap-node, .flowmap-node::after { animation: none; }
 }
 
 @media (max-width: 700px) {
