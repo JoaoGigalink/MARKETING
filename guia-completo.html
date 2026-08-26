@@ -755,9 +755,31 @@ footer.end a { color: var(--text-soft); }
       <h2>Revisar o mockup</h2>
       <div class="status-pill">a task vai aparecer em: <span class="chip" style="--dot-color:#0091ff"><i class="status-dot"></i>Validar Mockup</span></div>
       <div class="card">
-        <div class="where-tag doc">📄 responda no Google Doc</div>
-        <p>Antes de gerar todas as imagens finais, a automação gera <strong>uma imagem de prova de conceito</strong> — o mockup — e cola ela dentro do documento, na seção <code>## MOCKUP</code>.</p>
-        <p>Serve pra você confirmar o estilo visual antes de gastar tempo gerando o resto. Mesmo mecanismo: <code>Status: PENDENTE</code> → <code>APROVADO</code> ou <code>REPROVADO</code> com motivo.</p>
+        <div class="where-tag cu">🏷️ responda direto no ClickUp</div>
+        <p>Antes de gerar todas as imagens finais, a automação gera <strong>uma imagem de prova de conceito</strong> — o mockup — e anexa ela direto na task, com um comentário assim:</p>
+        <div class="type-box-wrap">
+          <div class="type-box" id="exemplo-anuncio-mockup">## mockup: prova de conceito visual
+
+Proxima acao: para aprovar, adicione a tag `aprovado` e comente `APROVADO [mockup]`.
+Para pedir ajuste, adicione a tag `reprovado` e comente `REPROVADO [mockup]`: &lt;descreva o que precisa mudar&gt;</div>
+        </div>
+        <p>Serve pra você confirmar o estilo visual antes de gastar tempo gerando o resto. Mesmo mecanismo das peças finais — só olhar a imagem anexada e decidir.</p>
+        <div class="twocol">
+          <div class="choice good">
+            <div class="head"><span class="tag-pill aprovado">aprovado</span>Estilo aprovado</div>
+            <div class="type-box-wrap">
+              <div class="type-box" id="exemplo-aprovado-mockup">APROVADO [mockup]</div>
+              <button class="copy-btn" data-copy-target="#exemplo-aprovado-mockup" title="Copiar" aria-label="Copiar texto de aprovação">⧉</button>
+            </div>
+          </div>
+          <div class="choice bad">
+            <div class="head"><span class="tag-pill reprovado">reprovado</span>Precisa de ajuste</div>
+            <div class="type-box-wrap">
+              <div class="type-box" id="exemplo-reprovado-mockup">REPROVADO [mockup]: <span class="ph">troca o fundo pra azul escuro</span></div>
+              <button class="copy-btn" data-copy-target="#exemplo-reprovado-mockup" title="Copiar" aria-label="Copiar texto de reprovação">⧉</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
