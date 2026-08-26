@@ -8,7 +8,38 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=4">
+<style>
+/* efeito de derretimento no hover das bolinhas do fluxo. está inline de propósito:
+   assim não depende do cache do style.css externo, e vence a regra de hover antiga
+   (mesma especificidade, mas declarada depois do <link>). */
+.flowmap-node {
+  position: relative;
+  transform-origin: 50% 0%;
+  transition: border-radius 0.45s ease, transform 0.45s ease;
+}
+.flowmap-node::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 96%;
+  width: 7px;
+  height: 0;
+  background: var(--fcolor, var(--text-soft));
+  border-radius: 0 0 60% 60%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: height 0.45s ease 0.08s, opacity 0.45s ease 0.08s;
+}
+.flowmap-step a:hover .flowmap-node {
+  border-radius: 38% 62% 24% 76% / 78% 60% 40% 22%;
+  transform: scaleY(0.62) scaleX(1.28) translateY(5px);
+}
+.flowmap-step a:hover .flowmap-node::after {
+  height: 10px;
+  opacity: 0.9;
+}
+</style>
 </head>
 <body>
 

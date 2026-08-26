@@ -216,46 +216,32 @@ code, .mono { font-family: var(--font-mono); }
   background: var(--fcolor, var(--text-soft));
   border: 3px solid var(--surface);
   box-shadow: 0 0 0 2px var(--fcolor, var(--text-soft));
-  transition: transform 0.15s ease;
   flex: 0 0 auto;
   position: relative;
-  animation: flowmap-melt 6s ease-in-out infinite;
+  /* derrete ao passar o mouse: a bolinha achata/escorre e solta uma gota */
   transform-origin: 50% 0%;
+  transition: border-radius 0.45s ease, transform 0.45s ease;
 }
-/* alterna a fase da animação a cada 2 nós (steps ficam nas posições ímpares,
-   os conectores nas pares) pra não derreterem todos em sincronia */
-.flowmap-step:nth-child(4n+3) .flowmap-node { animation-delay: -3s; }
 .flowmap-node::after {
   content: "";
   position: absolute;
   left: 50%;
-  top: 100%;
+  top: 96%;
   width: 7px;
   height: 0;
   background: var(--fcolor, var(--text-soft));
-  border-radius: 0 0 50% 50%;
+  border-radius: 0 0 60% 60%;
   transform: translateX(-50%);
   opacity: 0;
-  animation: flowmap-drip 6s ease-in infinite;
-  animation-delay: inherit;
+  transition: height 0.45s ease 0.08s, opacity 0.45s ease 0.08s;
 }
-.flowmap-step a:hover .flowmap-node { transform: scale(1.12); }
-@keyframes flowmap-melt {
-  0%, 100% { border-radius: 50%; transform: scaleY(1) scaleX(1) translateY(0); }
-  20% { border-radius: 50% 50% 46% 54% / 56% 56% 44% 44%; transform: scaleY(1.08) scaleX(0.95) translateY(0); }
-  45% { border-radius: 42% 58% 28% 72% / 72% 65% 35% 28%; transform: scaleY(0.68) scaleX(1.26) translateY(3px); }
-  70% { border-radius: 38% 62% 24% 76% / 78% 60% 40% 22%; transform: scaleY(0.58) scaleX(1.32) translateY(5px); }
-  88% { border-radius: 46% 54% 42% 58% / 58% 56% 44% 42%; transform: scaleY(0.88) scaleX(1.08) translateY(2px); }
+.flowmap-step a:hover .flowmap-node {
+  border-radius: 38% 62% 24% 76% / 78% 60% 40% 22%;
+  transform: scaleY(0.62) scaleX(1.28) translateY(5px);
 }
-@keyframes flowmap-drip {
-  0%, 38% { height: 0; opacity: 0; top: 100%; }
-  50% { height: 4px; opacity: 0.9; top: 100%; }
-  65% { height: 11px; opacity: 0.9; top: 100%; }
-  80% { height: 15px; opacity: 0.6; top: 106%; }
-  94%, 100% { height: 4px; opacity: 0; top: 132%; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .flowmap-node, .flowmap-node::after { animation: none; }
+.flowmap-step a:hover .flowmap-node::after {
+  height: 10px;
+  opacity: 0.9;
 }
 .flowmap-label {
   font-size: 12px;
