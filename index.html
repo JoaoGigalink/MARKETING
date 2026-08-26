@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Guia da Esteira de Mídia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Passo a passo de como usar o ClickUp com a automação de mídia: o fluxo completo, o que revisar em cada etapa e onde tirar dúvidas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="top">
+  <div class="top-inner">
+    <span class="eyebrow">Guia rápido · sem termos técnicos</span>
+    <h1>Como usar o ClickUp com a esteira de mídia</h1>
+    <p class="lede">A automação cria o conceito, os textos e as imagens de uma campanha sozinha. Sua parte é revisar cada etapa e dizer "tá bom" ou "ajusta isso" — este guia mostra exatamente onde clicar e o que escrever em cada uma.</p>
+    <nav class="top-nav">
+      <a href="index.html" class="current">O guia</a>
+      <a href="duvidas.html">Dúvidas comuns</a>
+    </nav>
+  </div>
+</div>
+
+<div class="flowmap-wrap">
+  <div class="flowmap-inner">
+    <h2>O caminho da task, do início ao fim</h2>
+    <div class="flowmap">
+      <div class="flowmap-step">
+        <a href="#criar-task">
+          <span class="flowmap-node" style="--fcolor:#87909e"></span>
+          <span class="flowmap-label">Formulário</span>
+        </a>
+      </div>
+      <div class="flowmap-connector"></div>
+      <div class="flowmap-step">
+        <a href="#criar-task">
+          <span class="flowmap-node" style="--fcolor:#5f55ee"></span>
+          <span class="flowmap-label">Briefing<br>Recebido</span>
+        </a>
+      </div>
+      <div class="flowmap-connector"></div>
+      <div class="flowmap-step">
+        <a href="#conceito">
+          <span class="flowmap-node" style="--fcolor:#ee5e99"></span>
+          <span class="flowmap-label">Validar<br>Conceito</span>
+        </a>
+      </div>
+      <div class="flowmap-connector"></div>
+      <div class="flowmap-step">
+        <a href="#estrutura">
+          <span class="flowmap-node" style="--fcolor:#656f7d"></span>
+          <span class="flowmap-label">Validando<br>Estrutura</span>
+        </a>
+      </div>
+      <div class="flowmap-connector"></div>
+      <div class="flowmap-step">
+        <a href="#copy">
+          <span class="flowmap-node" style="--fcolor:#e16b16"></span>
+          <span class="flowmap-label">Validar<br>Copy</span>
+        </a>
+      </div>
+      <div class="flowmap-connector"></div>
+      <div class="flowmap-step">
+        <a href="#mockup">
+          <span class="flowmap-node" style="--fcolor:#0091ff"></span>
+          <span class="flowmap-label">Validar<br>Mockup</span>
+        </a>
+      </div>
+      <div class="flowmap-connector"></div>
+      <div class="flowmap-step">
+        <a href="#pecas">
+          <span class="flowmap-node" style="--fcolor:#d33d44"></span>
+          <span class="flowmap-label">Validar<br>Derivações</span>
+        </a>
+      </div>
+      <div class="flowmap-connector"></div>
+      <div class="flowmap-step">
+        <a href="#publicado">
+          <span class="flowmap-node" style="--fcolor:#008844"></span>
+          <span class="flowmap-label">Publicado</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="shell">
+  <div class="nav-col">
+    <nav aria-label="Navegação do guia">
+      <span class="nav-title">Neste guia</span>
+      <ol>
+        <li><a href="#visao-geral"><span class="n">00</span> Visão geral</a></li>
+        <li><a href="#criar-task"><span class="n">01</span> Criar a task</a></li>
+        <li><a href="#conceito"><span class="n">02</span> Conceito</a></li>
+        <li><a href="#estrutura"><span class="n">03</span> Estrutura</a></li>
+        <li><a href="#copy"><span class="n">04</span> Textos (copy)</a></li>
+        <li><a href="#mockup"><span class="n">05</span> Mockup</a></li>
+        <li><a href="#pecas"><span class="n">06</span> Imagens e áudios</a></li>
+        <li><a href="#publicado"><span class="n">07</span> Publicado</a></li>
+        <li><a href="#chuleta"><span class="n">·</span> Cola rápida</a></li>
+      </ol>
+    </nav>
+  </div>
+
+  <div class="main-col">
+
+    <section class="intro-block" id="visao-geral" data-observe>
+      <p><strong>Você não precisa escrever nada de campanha do zero.</strong> Você preenche um formulário curto, e a partir daí a automação vai gerando cada parte (conceito, textos, imagens) e avisando você a cada etapa. Sua única função é <strong>aprovar</strong> ou <strong>pedir ajuste</strong>.</p>
+      <p>Existem só duas formas de responder, dependendo da etapa:</p>
+      <div class="legend">
+        <span class="doc">📄 no Google Doc</span>
+        <span class="cu">🏷️ no próprio ClickUp (tag + comentário)</span>
+      </div>
+      <p style="margin-top:14px">Quando for a etapa de tag no ClickUp, as cores abaixo são <strong>exatamente as mesmas</strong> que você vai ver lá — procure por elas:</p>
+      <div class="legend">
+        <span class="tag-note"><span class="tag-pill aprovado">aprovado</span> essa é a tag pra dizer que está bom</span>
+        <span class="tag-note"><span class="tag-pill reprovado">reprovado</span> essa é a tag pra pedir ajuste</span>
+      </div>
+    </section>
+
+    <div class="stage done" id="criar-task" data-observe>
+      <div class="dot">01</div>
+      <h2>Preencher o formulário de briefing</h2>
+      <div class="status-pill">status inicial: <span class="chip" style="--dot-color:#87909e"><i class="status-dot"></i>Não iniciado</span></div>
+      <div class="card">
+        <div class="where-tag cu">🏷️ preencha o formulário do ClickUp</div>
+        <p>Tudo começa neste formulário: <a href="https://app.clickup.com/90132830984/v/fm/2ky5bpr8-14373" target="_blank" rel="noopener">app.clickup.com/.../v/fm/2ky5bpr8-14373</a></p>
+        <ol class="step-list">
+          <li>Abra o link e responda o formulário — nome da campanha, objetivo, público, o que não pode faltar. É só isso, nada de escrever textos de campanha.</li>
+          <li>Envie o formulário. Isso <strong>cria a task automaticamente</strong> na lista — você não precisa criar a task na mão.</li>
+          <li>Abra a task recém-criada e, no topo, troque o status manualmente para <code>Briefing Recebido</code>. É esse clique que liga a automação.</li>
+        </ol>
+        <p style="margin-top:12px">Daqui pra frente, a maior parte dos avanços de etapa acontece sozinha — a task só volta a precisar de você quando houver algo pra revisar.</p>
+      </div>
+    </div>
+
+    <div class="stage" id="conceito" data-observe>
+      <div class="dot">02</div>
+      <h2>Revisar o conceito</h2>
+      <div class="status-pill">a task vai aparecer em: <span class="chip" style="--dot-color:#ee5e99"><i class="status-dot"></i>Validar Conceito</span></div>
+      <div class="card">
+        <div class="where-tag doc">📄 responda no Google Doc</div>
+        <p>A automação comenta na task com um link pro Google Doc. Abra o link — lá está a <strong>big idea</strong>, a promessa, o tom da campanha e o raciocínio por trás.</p>
+        <p>No fim da seção <code>## CONCEITO</code> tem uma linha <code>Status: PENDENTE</code>. É nela que você decide:</p>
+        <div class="twocol">
+          <div class="choice good">
+            <div class="head"><span class="dot-mark"></span>Gostou</div>
+            Troque <code>PENDENTE</code> por <code>APROVADO</code>. A automação segue pra próxima etapa sozinha.
+          </div>
+          <div class="choice bad">
+            <div class="head"><span class="dot-mark"></span>Precisa mudar</div>
+            Troque por <code>REPROVADO</code> e escreva o motivo na linha <code>Motivo</code> logo abaixo. A automação refaz o conceito com base no que você escreveu.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage" id="estrutura" data-observe>
+      <div class="dot">03</div>
+      <h2>Revisar a estrutura da campanha</h2>
+      <div class="status-pill">a task vai aparecer em: <span class="chip" style="--dot-color:#656f7d"><i class="status-dot"></i>Validando Estrutura</span></div>
+      <div class="card">
+        <div class="where-tag doc">📄 responda no mesmo Google Doc</div>
+        <p>No mesmo documento, agora tem uma seção <code>## ESTRUTURA</code> — a lista de peças que vão ser criadas (quais posts, quais formatos, pra qual canal) e uma apresentação visual do plano completo.</p>
+        <p>Mesmo mecanismo do conceito: ache o <code>Status: PENDENTE</code> dessa seção e troque por <code>APROVADO</code> ou <code>REPROVADO</code> (com o motivo, se for o caso).</p>
+      </div>
+    </div>
+
+    <div class="stage" id="copy" data-observe>
+      <div class="dot">04</div>
+      <h2>Revisar os textos (copy)</h2>
+      <div class="status-pill">a task vai aparecer em: <span class="chip" style="--dot-color:#e16b16"><i class="status-dot"></i>Validar Copy</span></div>
+      <div class="card">
+        <div class="where-tag doc">📄 responda no Doc de textos</div>
+        <p>Chega um novo link, agora de um documento só com os textos — legenda de post, roteiro de vídeo, etc. Cada texto tem sua própria seção <code>## COPY: &lt;nome da peça&gt;</code>, cada uma com seu próprio <code>Status: PENDENTE</code>.</p>
+        <p>Revise <strong>cada seção separadamente</strong> — dá pra aprovar um texto e reprovar outro na mesma passada.</p>
+      </div>
+    </div>
+
+    <div class="stage" id="mockup" data-observe>
+      <div class="dot">05</div>
+      <h2>Revisar o mockup</h2>
+      <div class="status-pill">a task vai aparecer em: <span class="chip" style="--dot-color:#0091ff"><i class="status-dot"></i>Validar Mockup</span></div>
+      <div class="card">
+        <div class="where-tag doc">📄 responda no Google Doc</div>
+        <p>Antes de gerar todas as imagens finais, a automação gera <strong>uma imagem de prova de conceito</strong> — o mockup — e cola ela dentro do documento, na seção <code>## MOCKUP</code>.</p>
+        <p>Serve pra você confirmar o estilo visual antes de gastar tempo gerando o resto. Mesmo mecanismo: <code>Status: PENDENTE</code> → <code>APROVADO</code> ou <code>REPROVADO</code> com motivo.</p>
+      </div>
+    </div>
+
+    <div class="stage action" id="pecas" data-observe>
+      <div class="dot">06</div>
+      <h2>Revisar as imagens e áudios finais</h2>
+      <div class="status-pill">a task vai aparecer em: <span class="chip" style="--dot-color:#d33d44"><i class="status-dot"></i>Validar Derivações</span></div>
+      <div class="card">
+        <div class="where-tag cu">🏷️ aqui muda — responda direto no ClickUp</div>
+        <p>Essa é a única etapa que <strong>não</strong> usa o Google Doc. Cada imagem ou áudio gerado é anexado direto na task, com um comentário assim:</p>
+        <div class="type-box-wrap">
+          <div class="type-box" id="exemplo-anuncio">## gestor_ti_confiante: post estatico (1080x1080)
+
+Proxima acao: para aprovar, adicione a tag `aprovado` e comente `APROVADO [gestor_ti_confiante]`.
+Para pedir ajuste, adicione a tag `reprovado` e comente `REPROVADO [gestor_ti_confiante]`: &lt;descreva o que precisa mudar&gt;</div>
+        </div>
+        <p>O texto entre <code>[ ]</code> muda pra cada peça — <strong>copie exatamente o que está escrito ali</strong>, letra por letra, não invente um nome novo.</p>
+        <ol class="step-list">
+          <li>Olhe a imagem/áudio anexado no comentário.</li>
+          <li>Decida: aprova ou pede ajuste.</li>
+          <li>Adicione a tag certa na task — <span class="tag-pill aprovado">aprovado</span> ou <span class="tag-pill reprovado">reprovado</span> — procure pelo ícone de etiqueta no topo da task. É a mesma cor que você vê aqui.</li>
+          <li>Escreva o comentário no formato exato mostrado acima, com o identificador daquela peça.</li>
+        </ol>
+        <div class="twocol">
+          <div class="choice good">
+            <div class="head"><span class="tag-pill aprovado">aprovado</span>Peça boa</div>
+            <div class="type-box-wrap">
+              <div class="type-box" id="exemplo-aprovado">APROVADO [gestor_ti_confiante]</div>
+              <button class="copy-btn" data-copy-target="#exemplo-aprovado" title="Copiar" aria-label="Copiar texto de aprovação">⧉</button>
+            </div>
+          </div>
+          <div class="choice bad">
+            <div class="head"><span class="tag-pill reprovado">reprovado</span>Peça precisa de ajuste</div>
+            <div class="type-box-wrap">
+              <div class="type-box" id="exemplo-reprovado">REPROVADO [gestor_ti_confiante]: <span class="ph">troca o fundo pra azul escuro</span></div>
+              <button class="copy-btn" data-copy-target="#exemplo-reprovado" title="Copiar" aria-label="Copiar texto de reprovação">⧉</button>
+            </div>
+          </div>
+        </div>
+        <p style="margin-top:12px">Se a task tiver <strong>mais de uma peça</strong> (ex. um carrossel com vários slides), repita esse processo pra cada uma — cada peça tem seu próprio identificador e seu próprio comentário de anúncio.</p>
+      </div>
+    </div>
+
+    <div class="stage done" id="publicado" data-observe>
+      <div class="dot">✓</div>
+      <h2>Pronto pra publicar</h2>
+      <div class="status-pill">a task termina em: <span class="chip" style="--dot-color:#008844"><i class="status-dot"></i>Publicado</span></div>
+      <div class="card">
+        <p>Quando todas as peças de uma task estiverem aprovadas, a automação encerra o ciclo e a campanha está pronta pra sair do papel — imagens, áudios e textos, todos já revisados por você.</p>
+      </div>
+    </div>
+
+    <section id="chuleta" data-observe>
+      <h2 style="font-size:22px; margin-bottom: 16px;">Cola rápida</h2>
+      <div class="card cheat-wrap">
+        <table class="cheat">
+          <thead>
+            <tr><th>Etapa</th><th>Onde responder</th><th>Como aprovar</th><th>Como pedir ajuste</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Conceito / Estrutura / Copy / Mockup</td>
+              <td>Google Doc, linha <code>Status:</code></td>
+              <td>trocar por <code>APROVADO</code></td>
+              <td>trocar por <code>REPROVADO</code> + motivo</td>
+            </tr>
+            <tr>
+              <td>Imagens e áudios finais</td>
+              <td>Comentário na task do ClickUp</td>
+              <td><span class="tag-pill aprovado">aprovado</span> + <code>APROVADO [id]</code></td>
+              <td><span class="tag-pill reprovado">reprovado</span> + <code>REPROVADO [id]: motivo</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <a class="next-link" href="duvidas.html">
+      <span class="txt">
+        <strong>Ficou com dúvida?</strong>
+        <span>Perguntas comuns: tag esquecida, task travada, reprovar de novo, e mais.</span>
+      </span>
+      <span class="arrow">→</span>
+    </a>
+
+    <footer class="end">Guia da esteira de mídia — automação M1 (ClickUp)</footer>
+
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

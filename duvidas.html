@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Dúvidas — Esteira de Mídia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Respostas para as dúvidas mais comuns sobre a automação de mídia no ClickUp: tags, reprovação, tasks travadas e mais.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .faq-shell { max-width: 760px; margin: 0 auto; padding: 40px 24px 96px; display: flex; flex-direction: column; gap: 40px; }
+  .faq-group { display: flex; flex-direction: column; gap: 10px; }
+
+  /* banner do Trello — imagem fixa da marca Gigalink, cores próprias
+     (não usa os tokens de tema: é uma foto, não um componente da UI) */
+  .trello-cta {
+    display: block;
+    border-radius: var(--radius);
+    overflow: hidden;
+    position: relative;
+    color: #fff;
+    box-shadow: var(--shadow);
+  }
+  .trello-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(100deg, rgba(6, 20, 60, 0.88) 0%, rgba(6, 20, 60, 0.72) 45%, rgba(6, 20, 60, 0.42) 100%),
+      url("assets/gigalink-fundo.png") center / cover no-repeat;
+  }
+  .trello-cta-inner {
+    position: relative;
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 480px;
+  }
+  .trello-cta-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.8;
+  }
+  .trello-cta-inner strong {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .trello-cta-sub { font-size: 14.5px; opacity: 0.88; line-height: 1.5; }
+  .trello-cta-btn {
+    margin-top: 10px;
+    align-self: flex-start;
+    background: rgba(255,255,255,0.14);
+    border: 1px solid rgba(255,255,255,0.35);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13.5px;
+    font-weight: 600;
+    backdrop-filter: blur(2px);
+  }
+  .trello-cta:hover .trello-cta-btn { background: rgba(255,255,255,0.24); }
+  .trello-cta:hover { text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="top-inner">
+    <span class="eyebrow">Guia rápido · sem termos técnicos</span>
+    <h1>Dúvidas comuns</h1>
+    <p class="lede">As perguntas que mais aparecem sobre a esteira de mídia no ClickUp. Se a sua não estiver aqui, o guia principal cobre o passo a passo completo.</p>
+    <nav class="top-nav">
+      <a href="index.html">O guia</a>
+      <a href="duvidas.html" class="current">Dúvidas comuns</a>
+    </nav>
+  </div>
+</div>
+
+<div class="faq-shell">
+
+  <div class="faq-group" id="aprovacao">
+    <p class="faq-group-title">Aprovação e tags</p>
+
+    <details class="faq" open>
+      <summary>Reprovei uma imagem mas nada aconteceu. Por quê?<span class="arrow">›</span></summary>
+      <div class="answer">
+        <p>Confirma duas coisas:</p>
+        <p>1. A tag <span class="tag-pill reprovado">reprovado</span> foi mesmo adicionada na task, não só o comentário — sem a tag, a automação não lê o comentário.</p>
+        <p>2. O identificador entre <code>[ ]</code> é <strong>idêntico</strong> ao que apareceu no comentário da peça — copie e cole em vez de digitar de novo.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>Posso reprovar mais de uma vez a mesma peça?<span class="arrow">›</span></summary>
+      <div class="answer">
+        <p>Sim — cada reprovação gera uma nova versão da peça. Depois de algumas tentativas sem sucesso, a automação escala o caso pra ajuste manual, pra não ficar regenerando sem fim.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>Aprovei errado. Dá pra desfazer?<span class="arrow">›</span></summary>
+      <div class="answer">
+        <p>Não tem um botão de "desfazer" — mas você pode comentar <code>REPROVADO [id]: motivo</code> na mesma peça pra pedir uma nova versão, como se estivesse pedindo um ajuste normal.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="faq-group" id="onde-achar">
+    <p class="faq-group-title">Onde encontrar as coisas</p>
+
+    <details class="faq">
+      <summary>Onde eu acho o link do Google Doc de novo?<span class="arrow">›</span></summary>
+      <div class="answer">
+        <p>Ele está nos comentários da própria task — procure pelo comentário que começa com "Conceito gerado", "Estrutura gerada" ou "Copy gerado". O link se repete nesses comentários conforme a campanha avança.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>Onde fica a linha "Status:" que eu preciso editar no Doc?<span class="arrow">›</span></summary>
+      <div class="answer">
+        <p>Sempre no final da seção correspondente (<code>## CONCEITO</code>, <code>## ESTRUTURA</code>, <code>## COPY: ...</code> ou <code>## MOCKUP</code>). Use Ctrl+F e busque por <code>Status:</code> pra achar rápido — se tiver mais de uma seção, o Doc pode ter mais de uma linha dessas.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>Preciso saber o que é "n8n" ou como a automação funciona por dentro?<span class="arrow">›</span></summary>
+      <div class="answer">
+        <p>Não. Pra usar no dia a dia, só o que está no guia principal importa: preencher o briefing, ler os comentários/Doc, e responder com aprovado/reprovado no lugar certo.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="faq-group" id="problemas">
+    <p class="faq-group-title">Quando algo parece errado</p>
+
+    <details class="faq">
+      <summary>Uma task ficou muito tempo sem avançar de status. É normal?<span class="arrow">›</span></summary>
+      <div class="answer">
+        <p>Pode acontecer em picos de uso. Em algumas etapas, se passar de 15 minutos parada sem nenhum comentário novo, a própria automação avisa na task que algo travou — nesse caso, chame quem cuida da automação em vez de tentar de novo por conta própria.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>A imagem gerada veio com um texto estranho escrito nela. O que eu faço?<span class="arrow">›</span></summary>
+      <div class="answer">
+        <p>Reprove normalmente — <span class="tag-pill reprovado">reprovado</span> + <code>REPROVADO [id]: tem um texto errado escrito na imagem, gera sem texto</code>. Isso já é um problema conhecido da geração de imagem por IA e a equipe que cuida da automação está de olho nisso.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>Aprovei tudo mas a task não foi pra "Publicado". O que checar?<span class="arrow">›</span></summary>
+      <div class="answer">
+        <p>Confirma se <strong>todas</strong> as peças da task foram aprovadas — se for um carrossel ou tiver peça de áudio junto, cada uma precisa da sua própria tag + comentário. Uma peça esquecida trava a task inteira nessa etapa.</p>
+      </div>
+    </details>
+  </div>
+
+  <a class="trello-cta" href="https://trello.com/b/sHnM2030/e14-hiperautomation" target="_blank" rel="noopener">
+    <div class="trello-cta-inner">
+      <span class="trello-cta-eyebrow">Não achou sua dúvida aqui?</span>
+      <strong>Manda pro quadro de dúvidas no Trello</strong>
+      <span class="trello-cta-sub">Tem um card fixo no topo explicando o formato — descrição, tipo, onde aconteceu e depois de qual etapa. Preenche assim que a equipe resolve mais rápido.</span>
+      <span class="trello-cta-btn">Abrir o quadro E14 — Hiperautomation ↗</span>
+    </div>
+  </a>
+
+  <a class="next-link" href="index.html">
+    <span class="txt">
+      <strong>Voltar pro guia</strong>
+      <span>Relembrar o passo a passo completo, etapa por etapa.</span>
+    </span>
+    <span class="arrow">→</span>
+  </a>
+
+  <footer class="end">Guia da esteira de mídia — automação M1 (ClickUp)</footer>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
