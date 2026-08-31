@@ -43,6 +43,11 @@ body{
 .wrap{max-width:1080px; margin:0 auto; padding:48px 24px 96px}
 
 /* --- cabecalho --- */
+.voltar{
+  display:inline-flex; align-items:center; gap:6px; font-family:var(--mono);
+  font-size:12.5px; color:var(--fg-dim); text-decoration:none; margin-bottom:18px;
+}
+.voltar:hover{ color:var(--navy) }
 .eyebrow{
   font-family:var(--mono); font-size:12px; letter-spacing:.14em;
   text-transform:uppercase; color:var(--fg-dim); margin:0 0 14px;
@@ -216,6 +221,7 @@ footer{
 <body>
 <div class="wrap">
 
+  <a class="voltar" href="../index.html">← voltar pro guia</a>
   <p class="eyebrow">Automação de mídia · GigaLink</p>
   <h1>Montador de Peça</h1>
   <p class="lede">Onde entra o texto, em que cor, e onde vai o logo. Você escreve isso no
