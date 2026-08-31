@@ -298,6 +298,33 @@ Só falta ativar.</textarea>
             <p class="custom-hint" id="logo-custom-hint"></p>
           </div>
         </div>
+
+        <div class="field">
+          <label class="custom-toggle">
+            <input type="checkbox" id="extra-toggle">
+            Adicionar uma segunda caixa de texto
+          </label>
+          <div id="extra-fields" hidden>
+            <label for="txt2">Texto da segunda caixa</label>
+            <textarea id="txt2" spellcheck="false">Oferta por tempo limitado.</textarea>
+
+            <label style="margin-top:9px">Posição da segunda caixa</label>
+            <div class="keys" id="poskeys2"></div>
+            <label class="custom-toggle">
+              <input type="checkbox" id="pos2-custom-toggle">
+              Posição personalizada (avançado)
+            </label>
+            <div class="custom-fields" id="pos2-custom-fields" hidden>
+              <label>X (do canto esquerdo)<input type="number" id="pos2-x" min="0" max="95" value="6" step="1"></label>
+              <label>Y (do topo)<input type="number" id="pos2-y" min="0" max="95" value="6" step="1"></label>
+              <label>Largura<input type="number" id="pos2-w" min="10" max="100" value="55" step="1"></label>
+              <p class="custom-hint" id="pos2-custom-hint"></p>
+            </div>
+
+            <label style="margin-top:9px">Cor da segunda caixa</label>
+            <div class="sws" id="colkeys2"></div>
+          </div>
+        </div>
       </div>
 
       <div class="stage">
@@ -305,6 +332,7 @@ Só falta ativar.</textarea>
         <div class="frame" id="frame">
           <canvas id="cv" width="320" height="427"></canvas>
           <div class="tbox" id="tbox"></div>
+          <div class="tbox" id="tbox2" hidden></div>
           <div class="lbox" id="lbox">giga<b>link</b></div>
         </div>
         <p class="verdict" id="verdict"><span class="dot"></span><span></span></p>
@@ -417,7 +445,8 @@ const IMG_B64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRs
 
 let sel = {pos:POS[0], col:COL[0], logo:POS[1], ratio:RATIOS[1],
   custom:{ativo:false, x:6, y:6, w:55},
-  customLogo:{ativo:false, x:6, y:6, w:28}};
+  customLogo:{ativo:false, x:6, y:6, w:28},
+  extra:{ativo:false, pos:POS[4], col:COL[0], custom:{ativo:false, x:6, y:70, w:55}}};
 
 const $ = id => document.getElementById(id);
 const img = new Image();
@@ -444,6 +473,20 @@ function buildColors(){
     b.appendChild(i);
     b.appendChild(document.createTextNode('[' + o.k + ']'));
     b.addEventListener('click', () => { sel.col = o; render(); });
+    host.appendChild(b);
+  });
+}
+
+function buildColors2(){
+  const host = $('colkeys2'); host.innerHTML = '';
+  COL.forEach(o => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'sw';
+    b.setAttribute('aria-pressed', sel.extra.col === o ? 'true' : 'false');
+    const i = document.createElement('i'); i.style.background = o.hex;
+    b.appendChild(i);
+    b.appendChild(document.createTextNode('[' + o.k + ']'));
+    b.addEventListener('click', () => { sel.extra.col = o; render(); });
     host.appendChild(b);
   });
 }
@@ -533,9 +576,32 @@ function render(){
     else { dot.style.background = 'var(--bad)'; lab.textContent = 'contraste ' + r + ' — ilegível, escolha outra cor'; }
   }
 
+  const t2 = $('tbox2');
+  t2.hidden = !sel.extra.ativo;
+  if (sel.extra.ativo) {
+    const p2 = sel.extra.custom.ativo
+      ? {x:sel.extra.custom.x, y:sel.extra.custom.y, w:sel.extra.custom.w, a:'left'}
+      : sel.extra.pos;
+    t2.style.left = (p2.x/100*W) + 'px';
+    t2.style.top = (p2.y/100*H) + 'px';
+    t2.style.width = (p2.w/100*W) + 'px';
+    t2.style.textAlign = p2.a;
+    t2.style.fontSize = fs + 'px';
+    t2.style.color = sel.extra.col.hex;
+    t2.textContent = $('txt2').value;
+  }
+
   chip(POS, $('poskeys'),  () => sel.pos,  o => sel.pos = o,  render);
   chip(POS, $('logokeys'), () => sel.logo, o => sel.logo = o, render);
-  buildColors(); buildRatios();
+  chip(POS, $('poskeys2'), () => sel.extra.pos, o => sel.extra.pos = o, render);
+  buildColors(); buildColors2(); buildRatios();
+
+  $('poskeys2').style.opacity = sel.extra.custom.ativo ? '0.4' : '1';
+  $('poskeys2').style.pointerEvents = sel.extra.custom.ativo ? 'none' : 'auto';
+  $('pos2-custom-hint').textContent =
+    '≈ ' + Math.round(sel.extra.custom.x/100*sel.ratio.refW) + 'px, ' + Math.round(sel.extra.custom.y/100*sel.ratio.refH) +
+    'px · largura ' + Math.round(sel.extra.custom.w/100*sel.ratio.refW) + 'px  (referência ' +
+    sel.ratio.refW + '×' + sel.ratio.refH + 'px, formato ' + sel.ratio.k + ')';
 
   $('poskeys').style.opacity = sel.custom.ativo ? '0.4' : '1';
   $('poskeys').style.pointerEvents = sel.custom.ativo ? 'none' : 'auto';
@@ -557,12 +623,24 @@ function render(){
     ? 'personalizada x=' + sel.customLogo.x + '% y=' + sel.customLogo.y + '% l=' + sel.customLogo.w + '%'
     : sel.logo.k;
 
-  $('out').textContent =
+  let saida =
     '## Texto da imagem\n' +
     'Texto: ' + $('txt').value.replace(/\n/g, ' / ') + '\n' +
     'Posicao: [' + posicaoTexto + ']\n' +
     'Cor: [' + sel.col.k + ']\n' +
     'Logo: [' + posicaoLogo + ']';
+
+  if (sel.extra.ativo) {
+    const posicaoTexto2 = sel.extra.custom.ativo
+      ? 'personalizada x=' + sel.extra.custom.x + '% y=' + sel.extra.custom.y + '% l=' + sel.extra.custom.w + '%'
+      : sel.extra.pos.k;
+    saida += '\n' +
+      'Texto 2: ' + $('txt2').value.replace(/\n/g, ' / ') + '\n' +
+      'Posicao 2: [' + posicaoTexto2 + ']\n' +
+      'Cor 2: [' + sel.extra.col.k + ']';
+  }
+
+  $('out').textContent = saida;
 }
 
 function buildPosGrid(){
@@ -623,6 +701,26 @@ $('logo-custom-toggle').addEventListener('change', e => {
     sel.customLogo.x = Math.min(95, Math.max(0, Number($('logo-x').value) || 0));
     sel.customLogo.y = Math.min(95, Math.max(0, Number($('logo-y').value) || 0));
     sel.customLogo.w = Math.min(80, Math.max(5, Number($('logo-w').value) || 5));
+    render();
+  });
+});
+
+$('extra-toggle').addEventListener('change', e => {
+  sel.extra.ativo = e.target.checked;
+  $('extra-fields').hidden = !sel.extra.ativo;
+  render();
+});
+$('txt2').addEventListener('input', render);
+$('pos2-custom-toggle').addEventListener('change', e => {
+  sel.extra.custom.ativo = e.target.checked;
+  $('pos2-custom-fields').hidden = !sel.extra.custom.ativo;
+  render();
+});
+['pos2-x','pos2-y','pos2-w'].forEach(id => {
+  $(id).addEventListener('input', () => {
+    sel.extra.custom.x = Math.min(95, Math.max(0, Number($('pos2-x').value) || 0));
+    sel.extra.custom.y = Math.min(95, Math.max(0, Number($('pos2-y').value) || 0));
+    sel.extra.custom.w = Math.min(100, Math.max(10, Number($('pos2-w').value) || 10));
     render();
   });
 });
