@@ -556,7 +556,9 @@ function render(){
 
   const l = sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y, a:'left'} : sel.logo;
   const lw = (sel.customLogo.ativo ? sel.customLogo.w : 28) / 100 * W;
-  $('lbox').style.left = (l.a === 'right' ? (l.x/100*W + p.w/100*W - lw) : (l.x/100*W)) + 'px';
+  // FIX: a logo direita deve ancorar na PROPRIA largura (l.w), nao na largura do
+  // texto (p.w) -- usar p.w acoplava a posicao da logo ao campo de largura do texto.
+  $('lbox').style.left = (l.a === 'right' ? (l.x/100*W + l.w/100*W - lw) : (l.x/100*W)) + 'px';
   $('lbox').style.top = (l.y/100*H) + 'px';
   $('lbox').style.width = lw + 'px';
   $('lbox').style.fontSize = Math.max(7, Math.round(W*0.031)) + 'px';
