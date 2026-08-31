@@ -336,7 +336,7 @@ Só falta ativar.</textarea>
           <div class="lbox" id="lbox">giga<b>link</b></div>
         </div>
         <p class="verdict" id="verdict"><span class="dot"></span><span></span></p>
-        <p class="note">Foto de exemplo, só para testar posição e contraste.</p>
+        <p class="note" id="foto-note">Foto de exemplo, só para testar posição e contraste.</p>
       </div>
     </div>
 
@@ -735,9 +735,29 @@ $('copy').addEventListener('click', async () => {
 });
 
 buildPosGrid(); buildColTable();
+
+// FIX 2026-08-31: se a task no ClickUp veio com o link ja preenchendo '?img=',
+// carrega o mockup aprovado de verdade em vez da foto de exemplo. Imagens sem
+// cabecalho CORS (caso do anexo do ClickUp) ainda desenham normal no canvas --
+// so a leitura de pixel do verificador de contraste fica indisponivel (measure()
+// ja tem fallback pra isso, so esconde o selo).
+const imgParam = new URLSearchParams(location.search).get('img');
 img.onload = () => { imgReady = true; render(); };
-img.onerror = () => { imgReady = false; render(); };
-img.src = 'data:image/jpeg;base64,' + IMG_B64;
+img.onerror = () => {
+  imgReady = false;
+  if (imgParam) {
+    $('foto-note').textContent = 'Não consegui carregar a imagem aprovada do link — usando a foto de exemplo.';
+    img.src = 'data:image/jpeg;base64,' + IMG_B64;
+  } else {
+    render();
+  }
+};
+if (imgParam) {
+  $('foto-note').textContent = 'Imagem do mockup aprovado desta task. O contraste pode não ser verificável (sem CORS no anexo).';
+  img.src = imgParam;
+} else {
+  img.src = 'data:image/jpeg;base64,' + IMG_B64;
+}
 render();
 </script>
 </body>
