@@ -160,6 +160,10 @@ textarea:focus-visible, .key:focus-visible, .sw:focus-visible,
   border-radius:3px; background:rgba(8,56,122,.9); color:#fff; padding:3px 0;
 }
 .lbox b{color:var(--lime); font-weight:700}
+.tbox, .lbox{cursor:move; touch-action:none; user-select:none}
+.guide{position:absolute; pointer-events:none; z-index:5}
+.guide-v{top:0; bottom:0; left:50%; width:0; border-left:1.5px dashed #ff3fa4; box-shadow:0 0 4px rgba(255,63,164,.6)}
+.guide-h{left:0; right:0; top:50%; height:0; border-top:1.5px dashed #ff3fa4; box-shadow:0 0 4px rgba(255,63,164,.6)}
 .verdict{
   font-family:var(--mono); font-size:12.5px; text-align:center;
   display:flex; align-items:center; gap:7px; justify-content:center;
@@ -334,6 +338,8 @@ Só falta ativar.</textarea>
           <div class="tbox" id="tbox"></div>
           <div class="tbox" id="tbox2" hidden></div>
           <div class="lbox" id="lbox">giga<b>link</b></div>
+          <div class="guide guide-v" id="guideV" hidden></div>
+          <div class="guide guide-h" id="guideH" hidden></div>
         </div>
         <p class="verdict" id="verdict"><span class="dot"></span><span></span></p>
         <p class="note" id="foto-note">Foto de exemplo, só para testar posição e contraste.</p>
@@ -502,6 +508,60 @@ function buildRatios(){
   });
 }
 
+// Arrastar a caixa direto na previa, com guia de centralizacao (igual Canva).
+// getPos/setPos leem e escrevem x/y em % relativas ao canvas; onStart converte a
+// caixa pra modo personalizado (se ainda nao estiver) antes do primeiro movimento,
+// semeando com a posicao atual, pra que arrastar "funcione" mesmo saindo de um preset.
+function attachDrag(el, getPos, setPos, onStart){
+  let dragging = false, startClientX, startClientY, startX, startY;
+  function pos(e){ const p = e.touches ? e.touches[0] : e; return {x:p.clientX, y:p.clientY}; }
+  function start(e){
+    e.preventDefault();
+    onStart();
+    const cur = getPos();
+    startX = cur.x; startY = cur.y;
+    const p = pos(e);
+    startClientX = p.x; startClientY = p.y;
+    dragging = true;
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchmove', move, {passive:false});
+    document.addEventListener('touchend', end);
+  }
+  function move(e){
+    if(!dragging) return;
+    e.preventDefault();
+    const p = pos(e);
+    const frame = $('frame').getBoundingClientRect();
+    let x = Math.min(95, Math.max(0, startX + (p.x - startClientX) / frame.width * 100));
+    let y = Math.min(95, Math.max(0, startY + (p.y - startClientY) / frame.height * 100));
+
+    const rect = el.getBoundingClientRect();
+    const boxWPerc = rect.width / frame.width * 100;
+    const boxHPerc = rect.height / frame.height * 100;
+    const THRESH = 1.8;
+    const snapX = Math.abs((x + boxWPerc / 2) - 50) < THRESH;
+    const snapY = Math.abs((y + boxHPerc / 2) - 50) < THRESH;
+    if (snapX) x = 50 - boxWPerc / 2;
+    if (snapY) y = 50 - boxHPerc / 2;
+    $('guideV').hidden = !snapX;
+    $('guideH').hidden = !snapY;
+
+    setPos(Math.round(x * 10) / 10, Math.round(y * 10) / 10);
+    render();
+  }
+  function end(){
+    dragging = false;
+    $('guideV').hidden = true; $('guideH').hidden = true;
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', end);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('touchend', end);
+  }
+  el.addEventListener('mousedown', start);
+  el.addEventListener('touchstart', start, {passive:false});
+}
+
 function drawPhoto(){
   const cv = $('cv'), W = 320, H = Math.round(W / sel.ratio.r);
   cv.width = W; cv.height = H;
@@ -609,6 +669,11 @@ function render(){
   $('poskeys').style.pointerEvents = sel.custom.ativo ? 'none' : 'auto';
   $('logokeys').style.opacity = sel.customLogo.ativo ? '0.4' : '1';
   $('logokeys').style.pointerEvents = sel.customLogo.ativo ? 'none' : 'auto';
+
+  // mantem os campos numericos em dia quando a posicao muda por arrastar na previa
+  $('pos-x').value = sel.custom.x; $('pos-y').value = sel.custom.y; $('pos-w').value = sel.custom.w;
+  $('pos2-x').value = sel.extra.custom.x; $('pos2-y').value = sel.extra.custom.y; $('pos2-w').value = sel.extra.custom.w;
+  $('logo-x').value = sel.customLogo.x; $('logo-y').value = sel.customLogo.y; $('logo-w').value = sel.customLogo.w;
 
   const rw = sel.ratio.refW, rh = sel.ratio.refH;
   $('pos-custom-hint').textContent =
@@ -733,6 +798,36 @@ $('copy').addEventListener('click', async () => {
   catch(e){ b.textContent = 'Selecione e copie'; }
   setTimeout(() => { b.textContent = 'Copiar'; }, 1700);
 });
+
+attachDrag($('tbox'),
+  () => sel.custom.ativo ? {x:sel.custom.x, y:sel.custom.y} : {x:sel.pos.x, y:sel.pos.y},
+  (x, y) => { sel.custom.x = x; sel.custom.y = y; },
+  () => {
+    if (!sel.custom.ativo) {
+      sel.custom.ativo = true; sel.custom.x = sel.pos.x; sel.custom.y = sel.pos.y; sel.custom.w = sel.pos.w;
+      $('pos-custom-toggle').checked = true; $('pos-custom-fields').hidden = false;
+    }
+  });
+
+attachDrag($('tbox2'),
+  () => sel.extra.custom.ativo ? {x:sel.extra.custom.x, y:sel.extra.custom.y} : {x:sel.extra.pos.x, y:sel.extra.pos.y},
+  (x, y) => { sel.extra.custom.x = x; sel.extra.custom.y = y; },
+  () => {
+    if (!sel.extra.custom.ativo) {
+      sel.extra.custom.ativo = true; sel.extra.custom.x = sel.extra.pos.x; sel.extra.custom.y = sel.extra.pos.y; sel.extra.custom.w = sel.extra.pos.w;
+      $('pos2-custom-toggle').checked = true; $('pos2-custom-fields').hidden = false;
+    }
+  });
+
+attachDrag($('lbox'),
+  () => sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y} : {x:sel.logo.x, y:sel.logo.y},
+  (x, y) => { sel.customLogo.x = x; sel.customLogo.y = y; },
+  () => {
+    if (!sel.customLogo.ativo) {
+      sel.customLogo.ativo = true; sel.customLogo.x = sel.logo.x; sel.customLogo.y = sel.logo.y; sel.customLogo.w = 28;
+      $('logo-custom-toggle').checked = true; $('logo-custom-fields').hidden = false;
+    }
+  });
 
 buildPosGrid(); buildColTable();
 
