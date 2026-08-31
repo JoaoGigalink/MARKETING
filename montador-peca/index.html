@@ -739,12 +739,14 @@ function drawPhoto(){
   const ctx = cv.getContext('2d');
   ctx.fillStyle = '#101820'; ctx.fillRect(0,0,W,H);
   if(!imgReady) return;
-  // recorte central preservando proporcao
-  const target = W/H, src = img.width/img.height;
-  let sw, sh, sx, sy;
-  if(src > target){ sh = img.height; sw = sh*target; sx = (img.width-sw)/2; sy = 0; }
-  else { sw = img.width; sh = sw/target; sx = 0; sy = (img.height-sh)/2; }
-  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+  // FIX: encaixa a foto INTEIRA dentro do quadro (sem cortar nada) -- o recorte
+  // central anterior cortava demais em formatos muito esticados (ex. LED 1.75:1),
+  // chegando a cortar pernas/cabecas. Sobra barra vazia nas bordas quando a
+  // proporcao da foto nao bate com a do formato, mas nada da imagem some.
+  const escala = Math.min(W / img.width, H / img.height);
+  const dw = img.width * escala, dh = img.height * escala;
+  const dx = (W - dw) / 2, dy = (H - dh) / 2;
+  ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, dw, dh);
 }
 
 function lum(r,g,b){
