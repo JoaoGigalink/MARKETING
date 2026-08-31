@@ -100,7 +100,7 @@ section{margin-top:60px}
   display:block; font-family:var(--mono); font-size:11px; letter-spacing:.12em;
   text-transform:uppercase; color:var(--fg-dim); margin-bottom:8px;
 }
-.key:focus-visible, .sw:focus-visible,
+.key:focus-visible, .sw:focus-visible, .icon-btn:focus-visible,
 .ratio button:focus-visible, .copy:focus-visible, .tbox:focus{
   outline:2px solid var(--navy); outline-offset:2px;
 }
@@ -138,13 +138,24 @@ section{margin-top:60px}
 :root[data-theme="dark"] .key[aria-pressed="true"],
 :root:not([data-theme="light"]) .key[aria-pressed="true"]{ color:#071a33 }
 
-.sws{display:flex; flex-wrap:wrap; gap:9px}
-.sw{
-  display:flex; align-items:center; gap:8px; cursor:pointer;
-  border:1px solid var(--border); border-radius:7px; padding:6px 11px 6px 7px;
-  background:var(--bg); color:var(--fg); font-family:var(--mono); font-size:12.5px;
+.icon-btn{
+  display:flex; align-items:center; justify-content:center; width:34px; height:34px;
+  padding:0; border:1px solid var(--border); border-radius:7px;
+  background:var(--bg); color:var(--fg-dim); cursor:pointer;
 }
-.sw i{width:17px; height:17px; border-radius:4px; border:1px solid rgba(43,52,64,.28); display:block}
+.icon-btn[aria-pressed="true"]{
+  background:var(--navy-dark); border-color:var(--navy-dark); color:var(--card);
+}
+:root[data-theme="dark"] .icon-btn[aria-pressed="true"],
+:root:not([data-theme="light"]) .icon-btn[aria-pressed="true"]{ color:#071a33 }
+
+.sws{display:flex; flex-wrap:wrap; gap:8px}
+.sw{
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+  width:34px; height:34px; padding:0; border:1px solid var(--border); border-radius:7px;
+  background:var(--bg);
+}
+.sw i{width:18px; height:18px; border-radius:50%; border:1px solid rgba(43,52,64,.28); display:block}
 .sw[aria-pressed="true"]{border-color:var(--navy-dark); box-shadow:inset 0 0 0 1px var(--navy-dark)}
 
 /* --- preview --- */
@@ -299,9 +310,9 @@ footer{
               Posição personalizada (avançado)
             </label>
             <div class="custom-fields" id="pos-custom-fields" hidden>
-              <label>X (do canto esquerdo)<input type="number" id="pos-x" min="0" max="95" value="6" step="1"></label>
-              <label>Y (do topo)<input type="number" id="pos-y" min="0" max="95" value="6" step="1"></label>
-              <label>Largura<input type="number" id="pos-w" min="10" max="100" value="55" step="1"></label>
+              <label title="X — distância do canto esquerdo">X<input type="number" id="pos-x" min="0" max="95" value="6" step="1"></label>
+              <label title="Y — distância do topo">Y<input type="number" id="pos-y" min="0" max="95" value="6" step="1"></label>
+              <label title="Largura da caixa de texto">L<input type="number" id="pos-w" min="10" max="100" value="55" step="1"></label>
               <p class="custom-hint" id="pos-custom-hint"></p>
             </div>
           </div>
@@ -326,9 +337,9 @@ footer{
               Posição personalizada (avançado)
             </label>
             <div class="custom-fields" id="pos2-custom-fields" hidden>
-              <label>X (do canto esquerdo)<input type="number" id="pos2-x" min="0" max="95" value="6" step="1"></label>
-              <label>Y (do topo)<input type="number" id="pos2-y" min="0" max="95" value="6" step="1"></label>
-              <label>Largura<input type="number" id="pos2-w" min="10" max="100" value="55" step="1"></label>
+              <label title="X — distância do canto esquerdo">X<input type="number" id="pos2-x" min="0" max="95" value="6" step="1"></label>
+              <label title="Y — distância do topo">Y<input type="number" id="pos2-y" min="0" max="95" value="6" step="1"></label>
+              <label title="Largura da caixa de texto">L<input type="number" id="pos2-w" min="10" max="100" value="55" step="1"></label>
               <p class="custom-hint" id="pos2-custom-hint"></p>
             </div>
           </div>
@@ -353,9 +364,9 @@ footer{
               Posição personalizada (avançado)
             </label>
             <div class="custom-fields" id="logo-custom-fields" hidden>
-              <label>X (do canto esquerdo)<input type="number" id="logo-x" min="0" max="95" value="6" step="1"></label>
-              <label>Y (do topo)<input type="number" id="logo-y" min="0" max="95" value="6" step="1"></label>
-              <label>Largura<input type="number" id="logo-w" min="5" max="80" value="28" step="1"></label>
+              <label title="X — distância do canto esquerdo">X<input type="number" id="logo-x" min="0" max="95" value="6" step="1"></label>
+              <label title="Y — distância do topo">Y<input type="number" id="logo-y" min="0" max="95" value="6" step="1"></label>
+              <label title="Largura da logo">L<input type="number" id="logo-w" min="5" max="80" value="28" step="1"></label>
               <p class="custom-hint" id="logo-custom-hint"></p>
             </div>
           </div>
@@ -503,41 +514,60 @@ const $ = id => document.getElementById(id);
 const img = new Image();
 let imgReady = false;
 
-function chip(list, host, get, set, render){
+// Icone-mini-diagrama pra posicao: um retangulo representando a peca, com uma barra
+// mostrando onde o texto fica -- mesma linguagem visual do grid de referencia mais
+// abaixo na pagina, so que em tamanho de botao. Tooltip/aria-label levam o nome por
+// extenso, ja que o icone sozinho nao da pra distinguir bem posicoes parecidas.
+function chipPos(list, host, get, set, render){
   host.innerHTML = '';
   list.forEach(o => {
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'key'; b.textContent = '[' + o.k + ']';
+    b.type = 'button'; b.className = 'icon-btn'; b.title = o.k;
+    b.setAttribute('aria-label', o.k);
+    const box = 26, h = Math.round(box * 4 / 3);
+    b.innerHTML =
+      '<svg viewBox="0 0 ' + box + ' ' + h + '" width="' + box + '" height="' + h + '" aria-hidden="true">' +
+      '<rect width="' + box + '" height="' + h + '" rx="3" fill="currentColor" opacity="0.14"/>' +
+      '<rect x="' + (o.x / 100 * box) + '" y="' + (o.y / 100 * h) + '" width="' + (o.w / 100 * box) +
+      '" height="' + (h * 0.16) + '" rx="1" fill="currentColor"/></svg>';
     b.setAttribute('aria-pressed', get() === o ? 'true' : 'false');
     b.addEventListener('click', () => { set(o); render(); });
     host.appendChild(b);
   });
 }
 
-function buildColors(){
-  const host = $('colkeys'); host.innerHTML = '';
-  COL.forEach(o => {
+// Icone classico de alinhamento (3 barras, a do meio desloca left/center/right) --
+// mesmo glifo que qualquer editor de texto usa, dispensa rotulo.
+const ALIGN_SVG = {
+  left:   '<rect x="0" y="0" width="20" height="2.6" rx="1"/><rect x="0" y="5.7" width="13" height="2.6" rx="1"/><rect x="0" y="11.4" width="17" height="2.6" rx="1"/>',
+  center: '<rect x="0" y="0" width="20" height="2.6" rx="1"/><rect x="3.5" y="5.7" width="13" height="2.6" rx="1"/><rect x="1.5" y="11.4" width="17" height="2.6" rx="1"/>',
+  right:  '<rect x="0" y="0" width="20" height="2.6" rx="1"/><rect x="7" y="5.7" width="13" height="2.6" rx="1"/><rect x="3" y="11.4" width="17" height="2.6" rx="1"/>',
+};
+function chipAlign(host, get, set, render){
+  host.innerHTML = '';
+  ALIGN.forEach(o => {
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'sw';
-    b.setAttribute('aria-pressed', sel.col === o ? 'true' : 'false');
-    const i = document.createElement('i'); i.style.background = o.hex;
-    b.appendChild(i);
-    b.appendChild(document.createTextNode('[' + o.k + ']'));
-    b.addEventListener('click', () => { sel.col = o; render(); });
+    b.type = 'button'; b.className = 'icon-btn';
+    b.title = o.k.charAt(0).toUpperCase() + o.k.slice(1);
+    b.setAttribute('aria-label', o.k);
+    b.innerHTML = '<svg viewBox="0 0 20 14" width="20" height="14" fill="currentColor" aria-hidden="true">' + ALIGN_SVG[o.a] + '</svg>';
+    b.setAttribute('aria-pressed', get() === o ? 'true' : 'false');
+    b.addEventListener('click', () => { set(o); render(); });
     host.appendChild(b);
   });
 }
 
-function buildColors2(){
-  const host = $('colkeys2'); host.innerHTML = '';
+// Botao so com o circulo de cor -- o nome vira tooltip (title/aria-label) em vez de
+// texto sempre visivel, pra nao empilhar "[branco] [navy] [navy escuro]..." na tela.
+function buildColorSwatches(host, get, set, render){
+  host.innerHTML = '';
   COL.forEach(o => {
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'sw';
-    b.setAttribute('aria-pressed', sel.extra.col === o ? 'true' : 'false');
+    b.type = 'button'; b.className = 'sw'; b.title = o.k; b.setAttribute('aria-label', o.k);
+    b.setAttribute('aria-pressed', get() === o ? 'true' : 'false');
     const i = document.createElement('i'); i.style.background = o.hex;
     b.appendChild(i);
-    b.appendChild(document.createTextNode('[' + o.k + ']'));
-    b.addEventListener('click', () => { sel.extra.col = o; render(); });
+    b.addEventListener('click', () => { set(o); render(); });
     host.appendChild(b);
   });
 }
@@ -756,12 +786,14 @@ function render(){
   posicionarHandle($('tbox2-handle'), t2, selecionado === 'texto2' && sel.extra.ativo);
   posicionarHandle($('lbox-handle'), $('lbox'), selecionado === 'logo');
 
-  chip(POS, $('poskeys'),  () => sel.pos,  o => { sel.pos = o; sel.align = o.a; },  render);
-  chip(ALIGN, $('alignkeys'), () => ALIGN.find(a => a.a === sel.align), o => sel.align = o.a, render);
-  chip(POS, $('logokeys'), () => sel.logo, o => sel.logo = o, render);
-  chip(POS, $('poskeys2'), () => sel.extra.pos, o => { sel.extra.pos = o; sel.extra.align = o.a; }, render);
-  chip(ALIGN, $('alignkeys2'), () => ALIGN.find(a => a.a === sel.extra.align), o => sel.extra.align = o.a, render);
-  buildColors(); buildColors2(); buildRatios();
+  chipPos(POS, $('poskeys'),  () => sel.pos,  o => { sel.pos = o; sel.align = o.a; },  render);
+  chipAlign($('alignkeys'), () => ALIGN.find(a => a.a === sel.align), o => sel.align = o.a, render);
+  chipPos(POS, $('logokeys'), () => sel.logo, o => sel.logo = o, render);
+  chipPos(POS, $('poskeys2'), () => sel.extra.pos, o => { sel.extra.pos = o; sel.extra.align = o.a; }, render);
+  chipAlign($('alignkeys2'), () => ALIGN.find(a => a.a === sel.extra.align), o => sel.extra.align = o.a, render);
+  buildColorSwatches($('colkeys'), () => sel.col, o => sel.col = o, render);
+  buildColorSwatches($('colkeys2'), () => sel.extra.col, o => sel.extra.col = o, render);
+  buildRatios();
 
   $('poskeys2').style.opacity = sel.extra.custom.ativo ? '0.4' : '1';
   $('poskeys2').style.pointerEvents = sel.extra.custom.ativo ? 'none' : 'auto';
