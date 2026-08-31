@@ -294,7 +294,8 @@ Só falta ativar.</textarea>
           <div class="custom-fields" id="logo-custom-fields" hidden>
             <label>X (do canto esquerdo)<input type="number" id="logo-x" min="0" max="95" value="6" step="1"></label>
             <label>Y (do topo)<input type="number" id="logo-y" min="0" max="95" value="6" step="1"></label>
-            <p class="custom-hint" id="logo-custom-hint" style="grid-column:1/-1"></p>
+            <label>Largura<input type="number" id="logo-w" min="5" max="80" value="28" step="1"></label>
+            <p class="custom-hint" id="logo-custom-hint"></p>
           </div>
         </div>
       </div>
@@ -416,7 +417,7 @@ const IMG_B64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRs
 
 let sel = {pos:POS[0], col:COL[0], logo:POS[1], ratio:RATIOS[1],
   custom:{ativo:false, x:6, y:6, w:55},
-  customLogo:{ativo:false, x:6, y:6}};
+  customLogo:{ativo:false, x:6, y:6, w:28}};
 
 const $ = id => document.getElementById(id);
 const img = new Image();
@@ -511,7 +512,7 @@ function render(){
   t.textContent = $('txt').value;
 
   const l = sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y, a:'left'} : sel.logo;
-  const lw = 0.28*W;
+  const lw = (sel.customLogo.ativo ? sel.customLogo.w : 28) / 100 * W;
   $('lbox').style.left = (l.a === 'right' ? (l.x/100*W + p.w/100*W - lw) : (l.x/100*W)) + 'px';
   $('lbox').style.top = (l.y/100*H) + 'px';
   $('lbox').style.width = lw + 'px';
@@ -547,13 +548,13 @@ function render(){
     'px · largura ' + Math.round(sel.custom.w/100*rw) + 'px  (referência ' + rw + '×' + rh + 'px, formato ' + sel.ratio.k + ')';
   $('logo-custom-hint').textContent =
     '≈ ' + Math.round(sel.customLogo.x/100*rw) + 'px, ' + Math.round(sel.customLogo.y/100*rh) +
-    'px  (referência ' + rw + '×' + rh + 'px, formato ' + sel.ratio.k + ')';
+    'px · largura ' + Math.round(sel.customLogo.w/100*rw) + 'px  (referência ' + rw + '×' + rh + 'px, formato ' + sel.ratio.k + ')';
 
   const posicaoTexto = sel.custom.ativo
     ? 'personalizada x=' + sel.custom.x + '% y=' + sel.custom.y + '% l=' + sel.custom.w + '%'
     : sel.pos.k;
   const posicaoLogo = sel.customLogo.ativo
-    ? 'personalizada x=' + sel.customLogo.x + '% y=' + sel.customLogo.y + '%'
+    ? 'personalizada x=' + sel.customLogo.x + '% y=' + sel.customLogo.y + '% l=' + sel.customLogo.w + '%'
     : sel.logo.k;
 
   $('out').textContent =
@@ -617,10 +618,11 @@ $('logo-custom-toggle').addEventListener('change', e => {
   $('logo-custom-fields').hidden = !sel.customLogo.ativo;
   render();
 });
-['logo-x','logo-y'].forEach(id => {
+['logo-x','logo-y','logo-w'].forEach(id => {
   $(id).addEventListener('input', () => {
     sel.customLogo.x = Math.min(95, Math.max(0, Number($('logo-x').value) || 0));
     sel.customLogo.y = Math.min(95, Math.max(0, Number($('logo-y').value) || 0));
+    sel.customLogo.w = Math.min(80, Math.max(5, Number($('logo-w').value) || 5));
     render();
   });
 });
