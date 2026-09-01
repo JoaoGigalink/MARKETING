@@ -287,11 +287,19 @@ section{margin-top:60px}
 .tbox.selecionado, .lbox.selecionado{outline:1.5px dashed #ff3fa4; outline-offset:3px}
 .lbox{
   position:absolute; display:flex; align-items:center; justify-content:center;
-  font-family:var(--display); font-weight:700; font-size:9px; letter-spacing:.06em;
-  border-radius:3px; padding:3px 0;
+  border-radius:6px; box-sizing:border-box;
+  cursor:move; touch-action:none; user-select:none;
 }
-.lbox b{font-weight:700}
-.lbox{cursor:move; touch-action:none; user-select:none}
+/* mascara/silhueta (variantes tingiveis): background-color pinta so onde o alfa do
+   PNG permite -- exatamente o mesmo efeito de e_colorize no Cloudinary/PIL.
+   Variantes ja coloridas usam background-image comum, sem mascara. */
+.lbox-img{
+  width:100%; height:100%;
+  -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+  -webkit-mask-position:center; mask-position:center;
+  -webkit-mask-size:contain; mask-size:contain;
+  background-position:center; background-repeat:no-repeat; background-size:contain;
+}
 .drag-handle{
   position:absolute; width:22px; height:22px; border-radius:50%;
   background:var(--navy-dark); color:var(--card); display:flex; align-items:center;
@@ -528,7 +536,7 @@ footer{
           <canvas id="cv" width="320" height="427"></canvas>
           <div class="tbox" id="tbox" contenteditable="true" spellcheck="false" data-placeholder="Escreva o texto aqui"></div>
           <div class="tbox" id="tbox2" contenteditable="true" spellcheck="false" data-placeholder="Escreva o texto aqui" hidden></div>
-          <div class="lbox" id="lbox">giga<b>link</b></div>
+          <div class="lbox" id="lbox"><div class="lbox-img" id="lboximg"></div></div>
           <div class="drag-handle" id="tbox-handle" title="Arrastar">⠿</div>
           <div class="drag-handle" id="tbox2-handle" title="Arrastar" hidden>⠿</div>
           <div class="drag-handle" id="lbox-handle" title="Arrastar">⠿</div>
@@ -661,8 +669,8 @@ const COL = [
 // outras variantes do Marketing forem cadastradas: e so acrescentar aqui e no
 // backend (LOGOS em montador.py / node do Cloudinary), nada mais muda.
 const LOGOS = [
-  {k:'gigalink oficial', nome:'Gigalink Oficial'},
-  {k:'gigasafe vertical', nome:'GigaSafe Vertical', colorido:true}
+  {k:'gigalink oficial', nome:'Gigalink Oficial', src:'logos/gigalink-oficial.png', w:2400, h:422},
+  {k:'gigasafe vertical', nome:'GigaSafe Vertical', colorido:true, src:'logos/gigasafe-vertical.png', w:1087, h:1226}
 ];
 // Formatos do catalogo de formatos da automacao (planilha de referencia) -- os
 // marcados como categoria "imagem" na planilha, mais os 3 de LED (categoria "fisico"
@@ -823,6 +831,10 @@ function toggleAmpliado(v){
 const $ = id => document.getElementById(id);
 const img = new Image();
 let imgReady = false;
+// carrega os PNGs reais das variantes de logo uma vez, pra desenhar nas miniaturas
+// (canvas precisa da imagem ja carregada -- CSS mask/background-image no #lbox da
+// previa principal nao tem esse problema, o navegador resolve sozinho)
+LOGOS.forEach(l => { l.img = new Image(); l.img.onload = () => render(); l.img.src = l.src; });
 
 // Icone-mini-diagrama pra posicao: um retangulo representando a peca, com uma barra
 // mostrando onde o texto fica -- mesma linguagem visual do grid de referencia mais
@@ -1226,17 +1238,13 @@ function desenharPeca(ctx, W, H){
     const ax = c.align === 'center' ? x0 + larguraTexto / 2 : c.align === 'right' ? x0 + larguraTexto : x0;
     r.linhas.forEach((ln, i) => ctx.fillText(ln, ax, marginY + i * r.fonte * AF_ALTURA_LINHA));
   });
-  // logo (representacao simplificada, so pra conferir posicao/tamanho)
+  // logo -- imagem real (nao mais um retangulo com "gigalink" escrito por cima)
   const l = sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y} : sel.logo;
   const lw = (sel.customLogo.ativo ? sel.customLogo.w : 28) / 100 * W;
-  const lh = Math.max(10, lw * 0.26);
+  const lh = lw * sel.logoVariante.h / sel.logoVariante.w;
   const lx = l.a === 'right' ? (l.x/100*W + (l.w||55)/100*W - lw) : (l.x/100*W);
-  ctx.fillStyle = 'rgba(8,56,122,.9)';
-  ctx.fillRect(Math.max(0, lx), l.y/100*H, lw, lh);
-  ctx.fillStyle = '#fff';
-  ctx.font = '700 ' + Math.max(7, Math.round(lw*0.14)) + 'px "Archivo", system-ui, sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('gigalink', Math.max(0, lx) + lw/2, l.y/100*H + lh/2);
+  desenharLogoNoCanvas(ctx, sel.logoVariante, sel.logoCor.hex, Math.max(0, lx), l.y/100*H, lw, lh,
+    sel.logoFundo.ativo ? hexToRgba(sel.logoFundo.col.hex, sel.logoFundo.opacidadePct / 100) : null);
   return { apertado: algumApertado };
 }
 
@@ -1298,6 +1306,38 @@ function hexToRgba(hex, alpha){
   return 'rgba(' + ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255) + ',' + alpha + ')';
 }
 
+// desenha a logo REAL nas miniaturas (nao um texto/retangulo de mentira). Mascaras de
+// silhueta (nao coloridas) sao tingidas num canvas auxiliar via source-in -- mesma
+// ideia do e_colorize do Cloudinary/putalpha do PIL, so que no navegador.
+const _logoBuf = document.createElement('canvas');
+function desenharLogoNoCanvas(ctx, variante, corHex, x, y, w, h, fundoRgba){
+  if (w <= 0 || h <= 0) return;
+  const im = variante.img;
+  if (!im || !im.complete || !im.naturalWidth) return;
+  if (fundoRgba){
+    const padX = h * 0.35, padY = h * 0.22, raio = Math.max(2, (h + 2*padY) * 0.18);
+    ctx.fillStyle = fundoRgba;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(x - padX, y - padY, w + 2*padX, h + 2*padY, raio)
+                  : ctx.rect(x - padX, y - padY, w + 2*padX, h + 2*padY);
+    ctx.fill();
+  }
+  if (variante.colorido){
+    ctx.drawImage(im, x, y, w, h);
+    return;
+  }
+  _logoBuf.width = Math.max(1, Math.round(w));
+  _logoBuf.height = Math.max(1, Math.round(h));
+  const bctx = _logoBuf.getContext('2d');
+  bctx.clearRect(0, 0, _logoBuf.width, _logoBuf.height);
+  bctx.drawImage(im, 0, 0, _logoBuf.width, _logoBuf.height);
+  bctx.globalCompositeOperation = 'source-in';
+  bctx.fillStyle = corHex;
+  bctx.fillRect(0, 0, _logoBuf.width, _logoBuf.height);
+  bctx.globalCompositeOperation = 'source-over';
+  ctx.drawImage(_logoBuf, x, y, w, h);
+}
+
 function measure(box){
   if(!imgReady) return null;
   const cv = $('cv'), ctx = cv.getContext('2d');
@@ -1327,27 +1367,41 @@ function render(){
 
   const l = sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y, a:'left'} : sel.logo;
   const lw = (sel.customLogo.ativo ? sel.customLogo.w : 28) / 100 * W;
+  const lh = lw * sel.logoVariante.h / sel.logoVariante.w;
   // FIX: a logo direita deve ancorar na PROPRIA largura (l.w), nao na largura do
   // texto (p.w) -- usar p.w acoplava a posicao da logo ao campo de largura do texto.
-  $('lbox').style.left = (l.a === 'right' ? (l.x/100*W + l.w/100*W - lw) : (l.x/100*W)) + 'px';
-  $('lbox').style.top = (l.y/100*H) + 'px';
-  $('lbox').style.width = lw + 'px';
-  $('lbox').style.fontSize = Math.max(7, Math.round(W*0.031)) + 'px';
+  const lx = l.a === 'right' ? (l.x/100*W + l.w/100*W - lw) : (l.x/100*W);
+  const ly = l.y/100*H;
+  // pilula de fundo: mesmo respiro proporcional usado no backend (montador.py /
+  // desenharLogoNoCanvas) -- cresce simetricamente ao redor da logo, sem deslocar
+  // a posicao configurada da logo em si.
+  const fundoAtivo = sel.logoFundo.ativo;
+  const padX = fundoAtivo ? lh * 0.35 : 0, padY = fundoAtivo ? lh * 0.22 : 0;
+  $('lbox').style.left = (lx - padX) + 'px';
+  $('lbox').style.top = (ly - padY) + 'px';
+  $('lbox').style.width = (lw + 2*padX) + 'px';
+  $('lbox').style.height = (lh + 2*padY) + 'px';
+  $('lbox').style.background = fundoAtivo
+    ? hexToRgba(sel.logoFundo.col.hex, sel.logoFundo.opacidadePct / 100) : 'transparent';
+  $('lboximg').style.width = lw + 'px';
+  $('lboximg').style.height = lh + 'px';
   // variantes coloridas (ex.: GigaSafe) ja tem cores proprias -- tingir destruiria a
   // marca, entao o controle de cor e ignorado/escondido pra elas (mesma regra do
   // backend: montador.py e o node do Cloudinary devem se comportar igual).
   if (sel.logoVariante.colorido) {
-    $('lbox').innerHTML = sel.logoVariante.nome;
-    $('lbox').style.color = '#fff';
+    $('lboximg').style.webkitMaskImage = 'none';
+    $('lboximg').style.maskImage = 'none';
+    $('lboximg').style.backgroundColor = 'transparent';
+    $('lboximg').style.backgroundImage = 'url(' + sel.logoVariante.src + ')';
   } else {
-    $('lbox').innerHTML = 'giga<b>link</b>';
-    $('lbox').style.color = sel.logoCor.hex;
+    $('lboximg').style.backgroundImage = 'none';
+    $('lboximg').style.webkitMaskImage = 'url(' + sel.logoVariante.src + ')';
+    $('lboximg').style.maskImage = 'url(' + sel.logoVariante.src + ')';
+    $('lboximg').style.backgroundColor = sel.logoCor.hex;
   }
   $('field-logocor').hidden = !!sel.logoVariante.colorido;
   $('logocor-nota').hidden = !sel.logoVariante.colorido;
   $('logocor-nota').textContent = 'Esta variante já tem cores próprias — a cor escolhida não se aplica.';
-  $('lbox').style.background = sel.logoFundo.ativo
-    ? hexToRgba(sel.logoFundo.col.hex, sel.logoFundo.opacidadePct / 100) : 'transparent';
 
   // contraste real sob a caixa de texto
   const box = t.getBoundingClientRect(), fr = $('frame').getBoundingClientRect();
