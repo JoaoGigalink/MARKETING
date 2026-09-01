@@ -162,6 +162,18 @@ section{margin-top:60px}
 .size-val{font-family:var(--mono); font-weight:400; text-transform:none; letter-spacing:0; color:var(--fg)}
 .size-range{width:100%; margin:9px 0; accent-color:var(--navy-dark)}
 .size-range + .custom-hint{margin-top:-3px}
+/* campo numerico de tamanho de fonte -- troca a barra de slider por um numero em
+   px que da pra digitar direto, mesma ideia de um campo de tamanho de fonte real
+   (Canva/Figma/Photoshop), em vez de só arrastar uma barra */
+.fontsize-input{display:flex; align-items:center; gap:8px; margin:9px 0}
+.fontsize-input input{
+  font-family:var(--mono); font-size:16px; padding:8px 10px; width:90px;
+  border:1px solid var(--border); border-radius:7px; background:var(--bg); color:var(--fg);
+  font-variant-numeric:tabular-nums;
+}
+.fontsize-input input:focus-visible{outline:2px solid var(--navy); outline-offset:1px}
+.fontsize-input span{font-family:var(--mono); font-size:12.5px; color:var(--fg-dim)}
+.fontsize-input + .custom-hint{margin-top:-3px}
 .keys{display:flex; flex-wrap:wrap; gap:7px}
 .key{
   font-family:var(--mono); font-size:12.5px; padding:7px 11px;
@@ -475,9 +487,12 @@ footer{
             </div>
           </div>
 
-          <div class="field" style="grid-column:1/-1">
-            <label for="fontsize-1">Tamanho do texto <span id="fontsize-1-val" class="size-val"></span></label>
-            <input type="range" id="fontsize-1" min="3" max="16" step="0.5" value="7.2" class="size-range">
+          <div class="field">
+            <label for="fontsize-1">Tamanho do texto</label>
+            <div class="fontsize-input">
+              <input type="number" id="fontsize-1" min="10" max="500" step="1" value="78">
+              <span>px</span>
+            </div>
             <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
           </div>
         </div>
@@ -523,9 +538,12 @@ footer{
             </div>
           </div>
 
-          <div class="field" style="grid-column:1/-1">
-            <label for="fontsize-2">Tamanho do texto <span id="fontsize-2-val" class="size-val"></span></label>
-            <input type="range" id="fontsize-2" min="3" max="16" step="0.5" value="7.2" class="size-range">
+          <div class="field">
+            <label for="fontsize-2">Tamanho do texto</label>
+            <div class="fontsize-input">
+              <input type="number" id="fontsize-2" min="10" max="500" step="1" value="78">
+              <span>px</span>
+            </div>
             <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
           </div>
         </div>
@@ -841,8 +859,8 @@ function sincronizarControles(){
   $('fundo2-toggle').checked = sel.extra.fundo.ativo;
   $('fundo2-fields').hidden = !sel.extra.fundo.ativo;
   $('fundo2-opacidade').value = sel.extra.fundo.opacidadePct;
-  $('fontsize-1').value = sel.fontSizePct;
-  $('fontsize-2').value = sel.extra.fontSizePct;
+  $('fontsize-1').value = Math.round(sel.ratio.refW * sel.fontSizePct / 100);
+  $('fontsize-2').value = Math.round(sel.ratio.refW * sel.extra.fontSizePct / 100);
   const i = FORMATOS.indexOf(sel.ratio);
   if (i >= 0) $('formato-select').value = String(i);
   const iLogo = LOGOS.indexOf(sel.logoVariante);
@@ -1576,15 +1594,14 @@ function render(){
     }
   }
 
-  // leitura visual do slider de tamanho (ainda so afeta a previa, ver hint no painel)
-  // -- tambem sincroniza aqui (nao so em sincronizarControles) porque as alcas de
-  // canto mudam sel.fontSizePct sem passar pelo proprio input
-  $('fontsize-1').value = sel.fontSizePct;
-  $('fontsize-2').value = sel.extra.fontSizePct;
-  // px calculado sobre a largura REAL do formato escolhido (sel.ratio.refW), nao o
-  // canvas pequeno da previa -- e o tamanho que sai de fato na peca
-  $('fontsize-1-val').textContent = Math.round(sel.ratio.refW * sel.fontSizePct / 100) + 'px (' + sel.fontSizePct.toFixed(1) + '%)';
-  $('fontsize-2-val').textContent = Math.round(sel.ratio.refW * sel.extra.fontSizePct / 100) + 'px (' + sel.extra.fontSizePct.toFixed(1) + '%)';
+  // campo de tamanho em px (nao mais slider) -- sincroniza aqui tambem (nao so em
+  // sincronizarControles) porque as alcas de canto mudam sel.fontSizePct sem passar
+  // pelo proprio input; px calculado sobre a largura REAL do formato escolhido
+  // (sel.ratio.refW), nao o canvas pequeno da previa -- e o tamanho que sai de fato
+  // na peca. So atualiza quando o campo nao esta em foco, senao apaga o que a
+  // pessoa esta digitando a cada tecla.
+  if (document.activeElement !== $('fontsize-1')) $('fontsize-1').value = Math.round(sel.ratio.refW * sel.fontSizePct / 100);
+  if (document.activeElement !== $('fontsize-2')) $('fontsize-2').value = Math.round(sel.ratio.refW * sel.extra.fontSizePct / 100);
   $('logo-fundo-opacidade-val').textContent = sel.logoFundo.opacidadePct + '%';
   $('fundo-opacidade-val').textContent = sel.fundo.opacidadePct + '%';
   $('fundo2-opacidade-val').textContent = sel.extra.fundo.opacidadePct + '%';
@@ -1810,8 +1827,19 @@ $('pos-custom-toggle').addEventListener('change', e => {
   });
 });
 
-$('fontsize-1').addEventListener('input', () => { sel.fontSizePct = Number($('fontsize-1').value) || 7.2; render(); });
-$('fontsize-2').addEventListener('input', () => { sel.extra.fontSizePct = Number($('fontsize-2').value) || 7.2; render(); });
+// campo em px: converte pra % da largura do formato (mesma unidade interna de
+// sempre) na entrada, e mostra em px de volta no render() -- ida e volta, nao troca
+// o que e guardado, so a unidade que a pessoa ve e digita
+$('fontsize-1').addEventListener('input', () => {
+  const px = Number($('fontsize-1').value) || 78;
+  sel.fontSizePct = Math.min(30, Math.max(1, px / sel.ratio.refW * 100));
+  render();
+});
+$('fontsize-2').addEventListener('input', () => {
+  const px = Number($('fontsize-2').value) || 78;
+  sel.extra.fontSizePct = Math.min(30, Math.max(1, px / sel.ratio.refW * 100));
+  render();
+});
 
 $('logo-fundo-toggle').addEventListener('change', e => {
   sel.logoFundo.ativo = e.target.checked;
