@@ -288,9 +288,9 @@ section{margin-top:60px}
 .lbox{
   position:absolute; display:flex; align-items:center; justify-content:center;
   font-family:var(--display); font-weight:700; font-size:9px; letter-spacing:.06em;
-  border-radius:3px; background:rgba(8,56,122,.9); color:#fff; padding:3px 0;
+  border-radius:3px; padding:3px 0;
 }
-.lbox b{color:var(--lime); font-weight:700}
+.lbox b{font-weight:700}
 .lbox{cursor:move; touch-action:none; user-select:none}
 .drag-handle{
   position:absolute; width:22px; height:22px; border-radius:50%;
@@ -481,6 +481,26 @@ footer{
             <label>Variante da logo</label>
             <select id="logo-variante-select" class="formato-select" title="Variante da logo" style="width:100%"></select>
           </div>
+
+          <div class="field">
+            <label>Cor da logo</label>
+            <div class="sws" id="logocolkeys"></div>
+          </div>
+
+          <div class="field">
+            <label class="custom-toggle" style="margin-top:0">
+              <input type="checkbox" id="logo-fundo-toggle">
+              Fundo atrás da logo
+            </label>
+            <div class="custom-fields" id="logo-fundo-fields" hidden style="grid-template-columns:1fr">
+              <div class="sws" id="logofundocolkeys"></div>
+              <label style="display:flex; flex-direction:column; gap:5px; font-family:var(--mono); font-size:11px; color:var(--fg-dim); text-transform:uppercase; letter-spacing:.06em">
+                Opacidade <span id="logo-fundo-opacidade-val" class="size-val"></span>
+                <input type="range" id="logo-fundo-opacidade" min="10" max="100" step="5" value="70" class="size-range" style="margin:0">
+              </label>
+            </div>
+          </div>
+
           <div class="field" style="margin-bottom:0">
             <label>Posição da logo</label>
             <div class="keys" id="logokeys"></div>
@@ -671,6 +691,8 @@ let sel = {pos:posPor('canto superior esquerdo'), col:COL[0], logo:posPor('canto
   texto:'Já é seu.\nSó falta ativar.', fontSizePct:7.2,
   custom:{ativo:false, x:6, y:6, w:55},
   customLogo:{ativo:false, x:6, y:6, w:28},
+  logoCor:COL[0],
+  logoFundo:{ativo:false, col:COL.find(c => c.k === 'navy escuro'), opacidadePct:70},
   extra:{ativo:false, pos:posPor('rodape esquerdo'), col:COL[0], align:posPor('rodape esquerdo').a,
     texto:'Oferta por tempo limitado.',
     fontSizePct:7.2, custom:{ativo:false, x:6, y:70, w:55}}};
@@ -692,9 +714,11 @@ const colResolver = v => (v && typeof v === 'object' && v.custom)
 function serializar(){
   return {
     pos: sel.pos.k, col: colSerializar(sel.col), logo: sel.logo.k, ratio: sel.ratio.k,
-    logoVariante: sel.logoVariante.k, align: sel.align,
+    logoVariante: sel.logoVariante.k, logoCor: colSerializar(sel.logoCor), align: sel.align,
     texto: sel.texto, fontSizePct: sel.fontSizePct,
     custom: {...sel.custom}, customLogo: {...sel.customLogo},
+    logoFundo: { ativo: sel.logoFundo.ativo, col: colSerializar(sel.logoFundo.col),
+                 opacidadePct: sel.logoFundo.opacidadePct },
     extra: { ativo: sel.extra.ativo, pos: sel.extra.pos.k, col: colSerializar(sel.extra.col),
              align: sel.extra.align, texto: sel.extra.texto, fontSizePct: sel.extra.fontSizePct,
              custom: {...sel.extra.custom} },
@@ -711,9 +735,14 @@ function aplicarEstado(e){
     const pos = P(e.pos), col = C(e.col), logo = P(e.logo), ratio = F(e.ratio),
           ep = P(e.extra.pos), ec = C(e.extra.col);
     if (!pos || !col || !logo || !ratio || !ep || !ec) return false;
-    // estados salvos antes desta feature nao tem logoVariante -- cai no padrao em vez
-    // de invalidar o estado inteiro
+    // estados salvos antes destas features nao tem logoVariante/logoCor/logoFundo --
+    // caem no padrao em vez de invalidar o estado inteiro
     sel.logoVariante = LOGOS.find(l => l.k === e.logoVariante) || LOGOS[0];
+    sel.logoCor = colResolver(e.logoCor) || COL[0];
+    sel.logoFundo = e.logoFundo
+      ? { ativo: !!e.logoFundo.ativo, col: colResolver(e.logoFundo.col) || COL.find(c => c.k === 'navy escuro'),
+          opacidadePct: e.logoFundo.opacidadePct || 70 }
+      : { ativo: false, col: COL.find(c => c.k === 'navy escuro'), opacidadePct: 70 };
     sel.pos = pos; sel.col = col; sel.logo = logo; sel.ratio = ratio; sel.align = e.align;
     sel.texto = e.texto; sel.fontSizePct = e.fontSizePct;
     sel.custom = {...e.custom}; sel.customLogo = {...e.customLogo};
@@ -734,6 +763,9 @@ function sincronizarControles(){
   $('pos2-custom-fields').hidden = !sel.extra.custom.ativo;
   $('logo-custom-toggle').checked = sel.customLogo.ativo;
   $('logo-custom-fields').hidden = !sel.customLogo.ativo;
+  $('logo-fundo-toggle').checked = sel.logoFundo.ativo;
+  $('logo-fundo-fields').hidden = !sel.logoFundo.ativo;
+  $('logo-fundo-opacidade').value = sel.logoFundo.opacidadePct;
   $('fontsize-1').value = sel.fontSizePct;
   $('fontsize-2').value = sel.extra.fontSizePct;
   const i = FORMATOS.indexOf(sel.ratio);
@@ -1259,6 +1291,10 @@ function hexLum(hex){
   const n = parseInt(hex.slice(1),16);
   return lum((n>>16)&255, (n>>8)&255, n&255);
 }
+function hexToRgba(hex, alpha){
+  const n = parseInt(hex.slice(1),16);
+  return 'rgba(' + ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255) + ',' + alpha + ')';
+}
 
 function measure(box){
   if(!imgReady) return null;
@@ -1295,6 +1331,9 @@ function render(){
   $('lbox').style.top = (l.y/100*H) + 'px';
   $('lbox').style.width = lw + 'px';
   $('lbox').style.fontSize = Math.max(7, Math.round(W*0.031)) + 'px';
+  $('lbox').style.color = sel.logoCor.hex;
+  $('lbox').style.background = sel.logoFundo.ativo
+    ? hexToRgba(sel.logoFundo.col.hex, sel.logoFundo.opacidadePct / 100) : 'transparent';
 
   // contraste real sob a caixa de texto
   const box = t.getBoundingClientRect(), fr = $('frame').getBoundingClientRect();
@@ -1328,6 +1367,7 @@ function render(){
   // leitura visual do slider de tamanho (ainda so afeta a previa, ver hint no painel)
   $('fontsize-1-val').textContent = sel.fontSizePct.toFixed(1) + '%';
   $('fontsize-2-val').textContent = sel.extra.fontSizePct.toFixed(1) + '%';
+  $('logo-fundo-opacidade-val').textContent = sel.logoFundo.opacidadePct + '%';
 
   // qual item esta selecionado: mostra so o painel dele e destaca a caixa certa na previa
   $('panel-texto1').hidden = selecionado !== 'texto1';
@@ -1384,6 +1424,8 @@ function render(){
   chipAlign($('alignkeys2'), () => ALIGN.find(a => a.a === sel.extra.align), o => sel.extra.align = o.a, render);
   buildColorSwatches($('colkeys'), () => sel.col, o => sel.col = o, render);
   buildColorSwatches($('colkeys2'), () => sel.extra.col, o => sel.extra.col = o, render);
+  buildColorSwatches($('logocolkeys'), () => sel.logoCor, o => sel.logoCor = o, render);
+  buildColorSwatches($('logofundocolkeys'), () => sel.logoFundo.col, o => sel.logoFundo.col = o, render);
 
   $('poskeys2').style.opacity = sel.extra.custom.ativo ? '0.4' : '1';
   $('poskeys2').style.pointerEvents = sel.extra.custom.ativo ? 'none' : 'auto';
@@ -1427,7 +1469,15 @@ function render(){
     'Cor: [' + corTexto + ']\n' +
     'Alinhamento: [' + alinhamentoTexto + ']\n' +
     'Logo: [' + posicaoLogo + ']\n' +
-    'Variante da logo: [' + sel.logoVariante.k + ']';
+    'Variante da logo: [' + sel.logoVariante.k + ']\n' +
+    'Cor do logo: [' + (sel.logoCor.custom ? 'personalizada ' + sel.logoCor.hex : sel.logoCor.k) + ']\n' +
+    'Fundo do logo: [' + (sel.logoFundo.ativo ? 'ativo' : 'inativo') + ']';
+  if (sel.logoFundo.ativo) {
+    const corFundo = sel.logoFundo.col.custom ? 'personalizada ' + sel.logoFundo.col.hex : sel.logoFundo.col.k;
+    saida += '\n' +
+      'Cor do fundo do logo: [' + corFundo + ']\n' +
+      'Opacidade do fundo do logo: [' + sel.logoFundo.opacidadePct + '%]';
+  }
 
   if (sel.extra.ativo) {
     const posicaoTexto2 = sel.extra.custom.ativo
@@ -1512,6 +1562,16 @@ $('pos-custom-toggle').addEventListener('change', e => {
 
 $('fontsize-1').addEventListener('input', () => { sel.fontSizePct = Number($('fontsize-1').value) || 7.2; render(); });
 $('fontsize-2').addEventListener('input', () => { sel.extra.fontSizePct = Number($('fontsize-2').value) || 7.2; render(); });
+
+$('logo-fundo-toggle').addEventListener('change', e => {
+  sel.logoFundo.ativo = e.target.checked;
+  $('logo-fundo-fields').hidden = !sel.logoFundo.ativo;
+  render();
+});
+$('logo-fundo-opacidade').addEventListener('input', () => {
+  sel.logoFundo.opacidadePct = Number($('logo-fundo-opacidade').value) || 70;
+  render();
+});
 
 $('btn-ampliar').addEventListener('click', () => toggleAmpliado(!ampliado));
 $('lightboxBackdrop').addEventListener('click', () => toggleAmpliado(false));
