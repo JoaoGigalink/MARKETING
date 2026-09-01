@@ -125,8 +125,8 @@ section{margin-top:60px}
 .panel[hidden]{display:none}
 .field{margin-bottom:0}
 .field > label{
-  display:block; font-family:var(--mono); font-size:11px; letter-spacing:.12em;
-  text-transform:uppercase; color:var(--fg-dim); margin-bottom:8px;
+  display:block; font-family:var(--display); font-weight:700; font-size:13.5px;
+  letter-spacing:0; color:var(--fg); margin-bottom:9px;
 }
 .key:focus-visible, .sw:focus-visible, .icon-btn:focus-visible,
 .formato-select:focus-visible, .copy:focus-visible, .tbox:focus{
@@ -134,21 +134,34 @@ section{margin-top:60px}
 }
 
 .custom-toggle{
-  display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:12.5px;
-  color:var(--fg-dim); cursor:pointer; margin-top:9px;
+  display:flex; align-items:center; gap:10px; font-family:var(--display); font-weight:600; font-size:13px;
+  color:var(--fg); cursor:pointer; margin-top:9px;
 }
-.custom-toggle input{accent-color:var(--navy-dark)}
+/* interruptor (switch) no lugar do checkbox padrao do navegador -- transmite melhor
+   a ideia de ligar/desligar um recurso do que uma caixinha de marcar */
+.custom-toggle input[type="checkbox"]{
+  appearance:none; -webkit-appearance:none; width:36px; height:21px; border-radius:999px;
+  background:var(--border); position:relative; flex:none; cursor:pointer; margin:0;
+  transition:background-color .15s ease; accent-color:var(--navy-dark);
+}
+.custom-toggle input[type="checkbox"]::after{
+  content:''; position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%;
+  background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.35); transition:transform .15s ease;
+}
+.custom-toggle input[type="checkbox"]:checked{background:var(--navy-dark)}
+.custom-toggle input[type="checkbox"]:checked::after{transform:translateX(15px)}
+.custom-toggle input[type="checkbox"]:focus-visible{outline:2px solid var(--navy); outline-offset:2px}
 .custom-fields{
   display:grid; grid-template-columns:1fr; gap:10px; margin-top:11px;
 }
-/* X/Y/L (ajuste fino de posicao) empilhados, mas sem esticar a largura toda do
-   painel -- os campos de fundo (cor+opacidade) usam a mesma classe base e querem
-   a largura inteira, entao o limite fica so nesta variante */
-.custom-fields.coords{max-width:220px}
+/* X/Y/L (ajuste fino de posicao) lado a lado -- agrupa as 3 coordenadas numa unica
+   linha compacta em vez de espalhar em 3 linhas. Os campos de fundo (cor+opacidade)
+   usam a mesma classe base e querem a largura inteira numa coluna so. */
+.custom-fields.coords{grid-template-columns:repeat(3,1fr); max-width:280px}
 .custom-fields[hidden]{display:none}
 .custom-fields label{
-  display:flex; flex-direction:column; gap:5px; font-family:var(--mono); font-size:11px;
-  color:var(--fg-dim); text-transform:uppercase; letter-spacing:.06em;
+  display:flex; flex-direction:column; gap:5px; font-family:var(--display); font-weight:600; font-size:11.5px;
+  color:var(--fg-dim); text-transform:none; letter-spacing:0;
 }
 .custom-fields input{
   font-family:var(--mono); font-size:14px; padding:7px 9px; width:100%;
@@ -157,23 +170,40 @@ section{margin-top:60px}
 }
 .custom-fields input:focus-visible{outline:2px solid var(--navy); outline-offset:1px}
 .custom-hint{
-  grid-column:1/-1; font-family:var(--mono); font-size:11px; color:var(--fg-dim); margin:0;
+  grid-column:1/-1; font-family:var(--body); font-size:12.5px; line-height:1.5;
+  color:var(--fg-dim); margin:0;
 }
 .size-val{font-family:var(--mono); font-weight:400; text-transform:none; letter-spacing:0; color:var(--fg)}
 .size-range{width:100%; margin:9px 0; accent-color:var(--navy-dark)}
 .size-range + .custom-hint{margin-top:-3px}
+/* linha de opacidade: rotulo + barra curta + valor logo ao lado, em vez da barra
+   esticando a largura toda do painel com o numero longe dela */
+.opacity-row{display:flex; align-items:center; gap:12px; margin-top:2px}
+.opacity-row .opacity-label{
+  font-family:var(--display); font-weight:600; font-size:12.5px; color:var(--fg-dim); white-space:nowrap;
+}
+.opacity-row .size-range{width:130px; margin:0; flex:none}
+.opacity-row .size-val{font-family:var(--display); font-weight:600; font-size:13px; min-width:34px}
 /* campo numerico de tamanho de fonte -- troca a barra de slider por um numero em
    px que da pra digitar direto, mesma ideia de um campo de tamanho de fonte real
    (Canva/Figma/Photoshop), em vez de só arrastar uma barra */
-.fontsize-input{display:flex; align-items:center; gap:8px; margin:9px 0}
+.fontsize-input{position:relative; display:inline-block; margin:9px 0}
 .fontsize-input input{
-  font-family:var(--mono); font-size:16px; padding:8px 10px; width:90px;
-  border:1px solid var(--border); border-radius:7px; background:var(--bg); color:var(--fg);
+  font-family:var(--display); font-weight:600; font-size:16px; padding:9px 32px 9px 12px; width:110px;
+  border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--fg);
   font-variant-numeric:tabular-nums;
 }
+/* "px" embutido dentro do proprio campo (como Figma/Canva), nao solto do lado --
+   e remove as setinhas nativas do number, que colidiriam com o "px" */
+.fontsize-input input[type="number"]{-moz-appearance:textfield}
+.fontsize-input input[type="number"]::-webkit-outer-spin-button,
+.fontsize-input input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none; margin:0}
 .fontsize-input input:focus-visible{outline:2px solid var(--navy); outline-offset:1px}
-.fontsize-input span{font-family:var(--mono); font-size:12.5px; color:var(--fg-dim)}
-.fontsize-input + .custom-hint{margin-top:-3px}
+.fontsize-input .unit{
+  position:absolute; right:12px; top:50%; transform:translateY(-50%);
+  font-family:var(--mono); font-size:12px; color:var(--fg-dim); pointer-events:none;
+}
+.fontsize-input + .custom-hint{margin-top:8px}
 .keys{display:flex; flex-wrap:wrap; gap:7px}
 .key{
   font-family:var(--mono); font-size:12.5px; padding:7px 11px;
@@ -199,20 +229,19 @@ section{margin-top:60px}
 .segbar .icon-btn{border:none; border-radius:0; min-width:36px}
 .segbar .icon-btn + .icon-btn{border-left:1px solid var(--border)}
 
-/* grade 3x3 de posicao: a celula ocupada representa onde o texto cai na peca */
-.posgrid3{display:grid; grid-template-columns:repeat(3,1fr); gap:5px; max-width:190px}
+/* grade 3x3 de posicao: a celula ocupada representa onde o texto cai na peca --
+   cada celula mostra uma seta apontando pra direcao (ou um ponto no centro), mais
+   parecido com uma ferramenta de ancoragem do que os tracinhos de antes */
+.posgrid3{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; max-width:190px}
 .poscell{
-  display:flex; align-items:flex-start; justify-content:center; height:34px; padding:5px 5px 0;
+  display:flex; align-items:center; justify-content:center; height:36px;
   border:1px solid var(--border); border-radius:6px; background:var(--bg); cursor:pointer;
+  color:var(--fg-dim);
 }
-.poscell i{display:block; height:5px; border-radius:2px; background:var(--fg-dim); opacity:.55}
-.poscell:hover{border-color:var(--navy)}
-.poscell[aria-pressed="true"]{background:var(--navy-dark); border-color:var(--navy-dark)}
-.poscell[aria-pressed="true"] i{background:#fff; opacity:1}
-/* a celula do meio (centralizada) mostra a barra no centro vertical */
-.posgrid3 > .poscell:nth-child(5){align-items:center; padding:0 5px}
-/* as celulas do rodape mostram a barra embaixo */
-.posgrid3 > .poscell:nth-child(n+7){align-items:flex-end; padding:0 5px 5px}
+.poscell:hover{border-color:var(--navy); color:var(--navy)}
+.poscell[aria-pressed="true"]{background:var(--navy-dark); border-color:var(--navy-dark); color:var(--card)}
+:root[data-theme="dark"] .poscell[aria-pressed="true"],
+:root:not([data-theme="light"]) .poscell[aria-pressed="true"]{ color:#071a33 }
 .icon-btn[aria-pressed="true"]{
   background:var(--navy-dark); border-color:var(--navy-dark); color:var(--card);
 }
@@ -479,10 +508,11 @@ footer{
             </label>
             <div class="custom-fields" id="fundo-fields" hidden style="grid-template-columns:1fr">
               <div class="sws" id="fundocolkeys"></div>
-              <label style="display:flex; flex-direction:column; gap:5px; font-family:var(--mono); font-size:11px; color:var(--fg-dim); text-transform:uppercase; letter-spacing:.06em">
-                Opacidade <span id="fundo-opacidade-val" class="size-val"></span>
-                <input type="range" id="fundo-opacidade" min="10" max="100" step="5" value="70" class="size-range" style="margin:0">
-              </label>
+              <div class="opacity-row">
+                <span class="opacity-label">Opacidade</span>
+                <input type="range" id="fundo-opacidade" min="10" max="100" step="5" value="70" class="size-range">
+                <span id="fundo-opacidade-val" class="size-val"></span>
+              </div>
               <p class="custom-hint" style="margin:0">Liga um fundo colorido no lugar do escurecimento automático de contraste.</p>
             </div>
           </div>
@@ -491,7 +521,7 @@ footer{
             <label for="fontsize-1">Tamanho do texto</label>
             <div class="fontsize-input">
               <input type="number" id="fontsize-1" min="10" max="500" step="1" value="78">
-              <span>px</span>
+              <span class="unit">px</span>
             </div>
             <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
           </div>
@@ -530,10 +560,11 @@ footer{
             </label>
             <div class="custom-fields" id="fundo2-fields" hidden style="grid-template-columns:1fr">
               <div class="sws" id="fundocolkeys2"></div>
-              <label style="display:flex; flex-direction:column; gap:5px; font-family:var(--mono); font-size:11px; color:var(--fg-dim); text-transform:uppercase; letter-spacing:.06em">
-                Opacidade <span id="fundo2-opacidade-val" class="size-val"></span>
-                <input type="range" id="fundo2-opacidade" min="10" max="100" step="5" value="70" class="size-range" style="margin:0">
-              </label>
+              <div class="opacity-row">
+                <span class="opacity-label">Opacidade</span>
+                <input type="range" id="fundo2-opacidade" min="10" max="100" step="5" value="70" class="size-range">
+                <span id="fundo2-opacidade-val" class="size-val"></span>
+              </div>
               <p class="custom-hint" style="margin:0">Liga um fundo colorido no lugar do escurecimento automático de contraste.</p>
             </div>
           </div>
@@ -542,7 +573,7 @@ footer{
             <label for="fontsize-2">Tamanho do texto</label>
             <div class="fontsize-input">
               <input type="number" id="fontsize-2" min="10" max="500" step="1" value="78">
-              <span>px</span>
+              <span class="unit">px</span>
             </div>
             <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
           </div>
@@ -567,10 +598,11 @@ footer{
             </label>
             <div class="custom-fields" id="logo-fundo-fields" hidden style="grid-template-columns:1fr">
               <div class="sws" id="logofundocolkeys"></div>
-              <label style="display:flex; flex-direction:column; gap:5px; font-family:var(--mono); font-size:11px; color:var(--fg-dim); text-transform:uppercase; letter-spacing:.06em">
-                Opacidade <span id="logo-fundo-opacidade-val" class="size-val"></span>
-                <input type="range" id="logo-fundo-opacidade" min="10" max="100" step="5" value="70" class="size-range" style="margin:0">
-              </label>
+              <div class="opacity-row">
+                <span class="opacity-label">Opacidade</span>
+                <input type="range" id="logo-fundo-opacidade" min="10" max="100" step="5" value="70" class="size-range">
+                <span id="logo-fundo-opacidade-val" class="size-val"></span>
+              </div>
             </div>
           </div>
 
@@ -927,6 +959,19 @@ LOGOS.forEach(l => { l.img = new Image(); l.img.onload = () => render(); l.img.s
 // barrinha), impossiveis de distinguir de relance e quebrando em duas linhas na
 // coluna estreita. Viraram uma grade 3x3: onde o botao esta na grade E onde o texto
 // vai ficar na peca. As duas celulas sem posicao correspondente ficam vazias.
+// Icone de ancora por celula: seta apontando pra direcao (canto/borda) ou um ponto
+// solido no centro -- mais intuitivo que os tracinhos de largura de antes, deixa
+// claro que e uma ferramenta de "prender" o texto num ponto da peca.
+const POSCELL_ANGULO = {'0,0':315, '0,1':0, '0,2':45, '1,0':270, '1,2':90, '2,0':225, '2,1':180, '2,2':135};
+function iconePoscell(linha, col){
+  if (linha === 1 && col === 1){
+    return '<svg viewBox="0 0 20 20" width="12" height="12" fill="currentColor" aria-hidden="true"><circle cx="10" cy="10" r="4.5"/></svg>';
+  }
+  const ang = POSCELL_ANGULO[linha + ',' + col];
+  return '<svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform:rotate(' + ang + 'deg)">' +
+    '<path d="M10 15V5M10 5L5.5 9.5M10 5L14.5 9.5"/></svg>';
+}
 function chipPos(list, host, get, set, render){
   host.innerHTML = '';
   host.className = 'posgrid3';
@@ -937,8 +982,7 @@ function chipPos(list, host, get, set, render){
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'poscell'; b.title = o.k;
       b.setAttribute('aria-label', o.k);
-      // barrinha indicando a largura da caixa (55% estreita / 80% larga)
-      b.innerHTML = '<i style="width:' + o.w + '%"></i>';
+      b.innerHTML = iconePoscell(linha, col);
       b.setAttribute('aria-pressed', get() === o ? 'true' : 'false');
       b.addEventListener('click', () => { set(o); render(); });
       host.appendChild(b);
