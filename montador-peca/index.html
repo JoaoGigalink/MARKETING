@@ -477,6 +477,10 @@ footer{
         </div>
 
         <div class="panel" id="panel-logo" hidden>
+          <div class="field">
+            <label>Variante da logo</label>
+            <select id="logo-variante-select" class="formato-select" title="Variante da logo" style="width:100%"></select>
+          </div>
           <div class="field" style="margin-bottom:0">
             <label>Posição da logo</label>
             <div class="keys" id="logokeys"></div>
@@ -631,6 +635,13 @@ const COL = [
   {k:'lima',        hex:'#E0E721', use:'Destaque de uma ou duas palavras. Evite frase inteira.'},
   {k:'ink',         hex:'#2B3440', use:'Quase-preto, sobre área muito clara.'}
 ];
+// Variantes oficiais de logo -- hoje so existe a mascara em uso (compositor/assets/
+// logo.png, colorida em runtime pela cor escolhida). Estrutura pronta pra quando as
+// outras variantes do Marketing forem cadastradas: e so acrescentar aqui e no
+// backend (LOGOS em montador.py / node do Cloudinary), nada mais muda.
+const LOGOS = [
+  {k:'gigalink oficial', nome:'Gigalink Oficial'}
+];
 // Formatos do catalogo de formatos da automacao (planilha de referencia) -- os
 // marcados como categoria "imagem" na planilha, mais os 3 de LED (categoria "fisico"
 // na planilha, mas sao imagem de verdade pra fins deste montador). 'reels' aparece
@@ -656,7 +667,7 @@ const IMG_B64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRs
 const posPor = k => POS.find(p => p.k === k);
 
 let sel = {pos:posPor('canto superior esquerdo'), col:COL[0], logo:posPor('canto superior direito'),
-  ratio:FORMATOS[0], align:posPor('canto superior esquerdo').a,
+  ratio:FORMATOS[0], logoVariante:LOGOS[0], align:posPor('canto superior esquerdo').a,
   texto:'Já é seu.\nSó falta ativar.', fontSizePct:7.2,
   custom:{ativo:false, x:6, y:6, w:55},
   customLogo:{ativo:false, x:6, y:6, w:28},
@@ -680,7 +691,8 @@ const colResolver = v => (v && typeof v === 'object' && v.custom)
 
 function serializar(){
   return {
-    pos: sel.pos.k, col: colSerializar(sel.col), logo: sel.logo.k, ratio: sel.ratio.k, align: sel.align,
+    pos: sel.pos.k, col: colSerializar(sel.col), logo: sel.logo.k, ratio: sel.ratio.k,
+    logoVariante: sel.logoVariante.k, align: sel.align,
     texto: sel.texto, fontSizePct: sel.fontSizePct,
     custom: {...sel.custom}, customLogo: {...sel.customLogo},
     extra: { ativo: sel.extra.ativo, pos: sel.extra.pos.k, col: colSerializar(sel.extra.col),
@@ -699,6 +711,9 @@ function aplicarEstado(e){
     const pos = P(e.pos), col = C(e.col), logo = P(e.logo), ratio = F(e.ratio),
           ep = P(e.extra.pos), ec = C(e.extra.col);
     if (!pos || !col || !logo || !ratio || !ep || !ec) return false;
+    // estados salvos antes desta feature nao tem logoVariante -- cai no padrao em vez
+    // de invalidar o estado inteiro
+    sel.logoVariante = LOGOS.find(l => l.k === e.logoVariante) || LOGOS[0];
     sel.pos = pos; sel.col = col; sel.logo = logo; sel.ratio = ratio; sel.align = e.align;
     sel.texto = e.texto; sel.fontSizePct = e.fontSizePct;
     sel.custom = {...e.custom}; sel.customLogo = {...e.customLogo};
@@ -723,6 +738,8 @@ function sincronizarControles(){
   $('fontsize-2').value = sel.extra.fontSizePct;
   const i = FORMATOS.indexOf(sel.ratio);
   if (i >= 0) $('formato-select').value = String(i);
+  const iLogo = LOGOS.indexOf(sel.logoVariante);
+  if (iLogo >= 0) $('logo-variante-select').value = String(iLogo);
 }
 
 let historico = [], refazendo = false;
@@ -884,6 +901,17 @@ function buildFormatoSelect(){
     host.appendChild(opt);
   });
   host.addEventListener('change', () => { sel.ratio = FORMATOS[Number(host.value)]; render(); });
+}
+
+function buildLogoVarianteSelect(){
+  const host = $('logo-variante-select'); host.innerHTML = '';
+  LOGOS.forEach((o, i) => {
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = o.nome;
+    host.appendChild(opt);
+  });
+  host.addEventListener('change', () => { sel.logoVariante = LOGOS[Number(host.value)]; render(); });
 }
 
 // Arrastar a caixa direto na previa, com guia de centralizacao (igual Canva).
@@ -1398,7 +1426,8 @@ function render(){
     'Posicao: [' + posicaoTexto + ']\n' +
     'Cor: [' + corTexto + ']\n' +
     'Alinhamento: [' + alinhamentoTexto + ']\n' +
-    'Logo: [' + posicaoLogo + ']';
+    'Logo: [' + posicaoLogo + ']\n' +
+    'Variante da logo: [' + sel.logoVariante.k + ']';
 
   if (sel.extra.ativo) {
     const posicaoTexto2 = sel.extra.custom.ativo
@@ -1606,7 +1635,7 @@ document.addEventListener('keydown', e => {
   }
 });
 
-buildPosGrid(); buildColTable(); buildFormatoSelect();
+buildPosGrid(); buildColTable(); buildFormatoSelect(); buildLogoVarianteSelect();
 
 // restaura o que estava sendo montado antes do F5 (silencioso: se o estado salvo
 // nao servir mais, simplesmente comeca do padrao)
