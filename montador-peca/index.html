@@ -829,7 +829,13 @@ function chipAlign(host, get, set, render){
 // personalizada -- e o backend (montador.py + node Cloudinary) PRECISA reconhecer essa
 // sintaxe, senao a automacao rejeita com chave_desconhecida ao colar o snippet.
 function buildColorSwatches(host, get, set, render){
-  host.innerHTML = '';
+  // os presets sao baratos de recriar a cada render(). O input[type=color] NAO pode
+  // ser recriado enquanto o seletor nativo do SO estiver aberto -- recriar o elemento
+  // fecha o popup depois do primeiro clique (bug real: "recebe o primeiro clique e ja
+  // fecha"). Por isso ele e criado UMA vez por host e so tem os atributos atualizados
+  // nas chamadas seguintes, em vez de host.innerHTML = '' destruir tudo de novo.
+  Array.from(host.querySelectorAll('.sw:not(.sw-custom)')).forEach(el => el.remove());
+  const antes = host.querySelector('.sw-custom');
   COL.forEach(o => {
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'sw'; b.title = o.k; b.setAttribute('aria-label', o.k);
@@ -837,27 +843,34 @@ function buildColorSwatches(host, get, set, render){
     const i = document.createElement('i'); i.style.background = o.hex;
     b.appendChild(i);
     b.addEventListener('click', () => { set(o); render(); });
-    host.appendChild(b);
+    host.insertBefore(b, antes);
   });
 
   const atual = get();
-  const wrap = document.createElement('label');
-  wrap.className = 'sw sw-custom';
-  wrap.title = 'Cor personalizada (roda RGB)';
+  let wrap = host.querySelector('.sw-custom');
+  if (!wrap) {
+    wrap = document.createElement('label');
+    wrap.className = 'sw sw-custom';
+    wrap.title = 'Cor personalizada (roda RGB)';
+    const dot = document.createElement('i');
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.setAttribute('aria-label', 'Escolher cor personalizada');
+    input.addEventListener('input', () => {
+      const hex = input.value.toUpperCase();
+      window.ultimaCorCustom = hex;
+      set({ k: 'personalizada', hex, custom: true });
+      render();
+    });
+    wrap.appendChild(dot); wrap.appendChild(input);
+    host.appendChild(wrap);
+  }
+  const dot = wrap.querySelector('i'), input = wrap.querySelector('input');
   wrap.setAttribute('aria-pressed', atual.custom ? 'true' : 'false');
-  const dot = document.createElement('i');
-  if (atual.custom) { dot.style.background = atual.hex; wrap.classList.add('sw-custom--ativo'); }
-  const input = document.createElement('input');
-  input.type = 'color'; input.value = atual.custom ? atual.hex : (window.ultimaCorCustom || '#ff3fa4');
-  input.setAttribute('aria-label', 'Escolher cor personalizada');
-  input.addEventListener('input', () => {
-    const hex = input.value.toUpperCase();
-    window.ultimaCorCustom = hex;
-    set({ k: 'personalizada', hex, custom: true });
-    render();
-  });
-  wrap.appendChild(dot); wrap.appendChild(input);
-  host.appendChild(wrap);
+  wrap.classList.toggle('sw-custom--ativo', !!atual.custom);
+  dot.style.background = atual.custom ? atual.hex : '';
+  const hexAtual = atual.custom ? atual.hex : (window.ultimaCorCustom || '#ff3fa4');
+  if (document.activeElement !== input) input.value = hexAtual;
 }
 
 // Select nativo, montado uma vez so (nao precisa reconstruir a cada render() como os
