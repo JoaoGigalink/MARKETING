@@ -245,6 +245,11 @@ section{margin-top:60px}
   touch-action:none; user-select:none; box-shadow:0 1px 3px rgba(0,0,0,.35); z-index:6;
 }
 :root[data-theme="dark"] .drag-handle, :root:not([data-theme="light"]) .drag-handle{color:#071a33}
+.resize-handle{
+  position:absolute; width:10px; height:26px; border-radius:4px;
+  background:var(--navy-dark); border:1.5px solid var(--card); cursor:ew-resize;
+  touch-action:none; user-select:none; box-shadow:0 1px 3px rgba(0,0,0,.35); z-index:6;
+}
 .guide{position:absolute; pointer-events:none; z-index:5}
 .guide-v{top:0; bottom:0; left:50%; width:0; border-left:1.5px dashed #ff3fa4; box-shadow:0 0 4px rgba(255,63,164,.6)}
 .guide-h{left:0; right:0; top:50%; height:0; border-top:1.5px dashed #ff3fa4; box-shadow:0 0 4px rgba(255,63,164,.6)}
@@ -447,6 +452,10 @@ footer{
           <div class="drag-handle" id="tbox-handle" title="Arrastar">⠿</div>
           <div class="drag-handle" id="tbox2-handle" title="Arrastar" hidden>⠿</div>
           <div class="drag-handle" id="lbox-handle" title="Arrastar">⠿</div>
+          <div class="resize-handle" id="tbox-resize-l" title="Redimensionar" hidden></div>
+          <div class="resize-handle" id="tbox-resize-r" title="Redimensionar" hidden></div>
+          <div class="resize-handle" id="tbox2-resize-l" title="Redimensionar" hidden></div>
+          <div class="resize-handle" id="tbox2-resize-r" title="Redimensionar" hidden></div>
           <div class="guide guide-v" id="guideV" hidden></div>
           <div class="guide guide-h" id="guideH" hidden></div>
         </div>
@@ -837,6 +846,114 @@ function attachDrag(handle, boxEl, getPos, setPos, onStart){
   handle.addEventListener('touchstart', start, {passive:false});
 }
 
+// Arrastar clicando em QUALQUER ponto do texto (nao so pelo puxador ⠿) -- a
+// dificuldade de fazer isso num contenteditable e que mousedown tambem serve pra
+// posicionar o cursor de edicao. Resolvido com um LIMIAR: so vira "arrastar" depois
+// que o ponteiro anda mais que alguns px ainda com o botao pressionado; um clique
+// simples (sem mover) continua funcionando como clique normal pra editar o texto.
+// Quando o limiar e cruzado, tira o foco do contenteditable (senao ele fica
+// selecionando texto durante o arraste) e reaproveita a mesma logica de guia de
+// centralizacao do attachDrag.
+function attachDragDireto(el, getPos, setPos, onStart){
+  let pronto = false, arrastando = false, startClientX, startClientY, startX, startY;
+  const LIMIAR = 5;
+  function pos(e){ const p = e.touches ? e.touches[0] : e; return {x:p.clientX, y:p.clientY}; }
+  function start(e){
+    const p = pos(e);
+    startClientX = p.x; startClientY = p.y;
+    pronto = true; arrastando = false;
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchmove', move, {passive:false});
+    document.addEventListener('touchend', end);
+  }
+  function move(e){
+    if (!pronto) return;
+    const p = pos(e);
+    if (!arrastando){
+      if (Math.abs(p.x - startClientX) < LIMIAR && Math.abs(p.y - startClientY) < LIMIAR) return;
+      arrastando = true;
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      window.getSelection().removeAllRanges();
+      onStart();
+      const cur = getPos();
+      startX = cur.x; startY = cur.y;
+    }
+    e.preventDefault();
+    const frame = $('frame').getBoundingClientRect();
+    let x = Math.min(95, Math.max(0, startX + (p.x - startClientX) / frame.width * 100));
+    let y = Math.min(95, Math.max(0, startY + (p.y - startClientY) / frame.height * 100));
+
+    const rect = el.getBoundingClientRect();
+    const boxWPerc = rect.width / frame.width * 100;
+    const boxHPerc = rect.height / frame.height * 100;
+    const THRESH = 1.8;
+    const snapX = Math.abs((x + boxWPerc / 2) - 50) < THRESH;
+    const snapY = Math.abs((y + boxHPerc / 2) - 50) < THRESH;
+    if (snapX) x = 50 - boxWPerc / 2;
+    if (snapY) y = 50 - boxHPerc / 2;
+    $('guideV').hidden = !snapX;
+    $('guideH').hidden = !snapY;
+
+    setPos(Math.round(x * 10) / 10, Math.round(y * 10) / 10);
+    render();
+  }
+  function end(){
+    pronto = false; arrastando = false;
+    $('guideV').hidden = true; $('guideH').hidden = true;
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', end);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('touchend', end);
+  }
+  el.addEventListener('mousedown', start);
+  el.addEventListener('touchstart', start, {passive:true});
+}
+
+// Alcas de redimensionar a largura da caixa de texto, uma em cada borda lateral --
+// arrastar a da direita muda so a largura (a esquerda fica fixa); arrastar a da
+// esquerda move a borda esquerda mantendo a direita fixa (igual Canva/Figma).
+function attachResize(handle, getBox, setBox, onStart, lado){
+  let dragging = false, startClientX, startX, startW;
+  function start(e){
+    e.preventDefault();
+    onStart();
+    const b = getBox();
+    startX = b.x; startW = b.w;
+    startClientX = (e.touches ? e.touches[0] : e).clientX;
+    dragging = true;
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchmove', move, {passive:false});
+    document.addEventListener('touchend', end);
+  }
+  function move(e){
+    if (!dragging) return;
+    e.preventDefault();
+    const clientX = (e.touches ? e.touches[0] : e).clientX;
+    const frame = $('frame').getBoundingClientRect();
+    const deltaPerc = (clientX - startClientX) / frame.width * 100;
+    if (lado === 'direita'){
+      const novoW = Math.min(100 - startX, Math.max(10, startW + deltaPerc));
+      setBox({ x: startX, w: Math.round(novoW * 10) / 10 });
+    } else {
+      const novoX = Math.min(startX + startW - 10, Math.max(0, startX + deltaPerc));
+      const novoW = startW - (novoX - startX);
+      setBox({ x: Math.round(novoX * 10) / 10, w: Math.round(novoW * 10) / 10 });
+    }
+    render();
+  }
+  function end(){
+    dragging = false;
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', end);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('touchend', end);
+  }
+  handle.addEventListener('mousedown', start);
+  handle.addEventListener('touchstart', start, {passive:false});
+}
+
 // Icone da logo: um pequeno pictograma de "imagem" (moldura + sol + montanha),
 // pra diferenciar visualmente das caixas de texto (letra T) sem precisar de rotulo.
 const LOGO_ICON_SVG = '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" ' +
@@ -1115,6 +1232,20 @@ function render(){
   posicionarHandle($('tbox2-handle'), t2, selecionado === 'texto2' && sel.extra.ativo);
   posicionarHandle($('lbox-handle'), $('lbox'), selecionado === 'logo');
 
+  function posicionarResize(hl, hr, alvo, mostrar){
+    hl.hidden = hr.hidden = !mostrar;
+    if (!mostrar) return;
+    const TAM = 10;
+    const ax = parseFloat(alvo.style.left) || 0;
+    const ay = parseFloat(alvo.style.top) || 0;
+    const aw = alvo.offsetWidth || 0, ah = alvo.offsetHeight || 0;
+    const cy = Math.max(0, Math.min(ay + ah / 2 - 13, H - 26));
+    hl.style.left = Math.max(-TAM/2, ax - TAM/2) + 'px'; hl.style.top = cy + 'px';
+    hr.style.left = Math.min(W - TAM/2, ax + aw - TAM/2) + 'px'; hr.style.top = cy + 'px';
+  }
+  posicionarResize($('tbox-resize-l'), $('tbox-resize-r'), t, selecionado === 'texto1');
+  posicionarResize($('tbox2-resize-l'), $('tbox2-resize-r'), t2, selecionado === 'texto2' && sel.extra.ativo);
+
   chipPos(POS, $('poskeys'),  () => sel.pos,  o => { sel.pos = o; sel.align = o.a; },  render);
   chipAlign($('alignkeys'), () => ALIGN.find(a => a.a === sel.align), o => sel.align = o.a, render);
   chipPos(POS, $('logokeys'), () => sel.logo, o => sel.logo = o, render);
@@ -1282,27 +1413,52 @@ $('copy').addEventListener('click', async () => {
   setTimeout(() => { b.textContent = 'Copiar'; }, 1700);
 });
 
+function ativarCustom1(){
+  selecionado = 'texto1';
+  if (!sel.custom.ativo) {
+    sel.custom.ativo = true; sel.custom.x = sel.pos.x; sel.custom.y = sel.pos.y; sel.custom.w = sel.pos.w;
+    $('pos-custom-toggle').checked = true; $('pos-custom-fields').hidden = false;
+  }
+}
+function ativarCustom2(){
+  selecionado = 'texto2';
+  if (!sel.extra.custom.ativo) {
+    sel.extra.custom.ativo = true; sel.extra.custom.x = sel.extra.pos.x; sel.extra.custom.y = sel.extra.pos.y; sel.extra.custom.w = sel.extra.pos.w;
+    $('pos2-custom-toggle').checked = true; $('pos2-custom-fields').hidden = false;
+  }
+}
+
 attachDrag($('tbox-handle'), $('tbox'),
   () => sel.custom.ativo ? {x:sel.custom.x, y:sel.custom.y} : {x:sel.pos.x, y:sel.pos.y},
   (x, y) => { sel.custom.x = x; sel.custom.y = y; },
-  () => {
-    selecionado = 'texto1';
-    if (!sel.custom.ativo) {
-      sel.custom.ativo = true; sel.custom.x = sel.pos.x; sel.custom.y = sel.pos.y; sel.custom.w = sel.pos.w;
-      $('pos-custom-toggle').checked = true; $('pos-custom-fields').hidden = false;
-    }
-  });
+  ativarCustom1);
+// arrastar clicando direto no texto, sem precisar do puxador
+attachDragDireto($('tbox'),
+  () => sel.custom.ativo ? {x:sel.custom.x, y:sel.custom.y} : {x:sel.pos.x, y:sel.pos.y},
+  (x, y) => { sel.custom.x = x; sel.custom.y = y; },
+  ativarCustom1);
+// alcas de redimensionar a largura da caixa
+attachResize($('tbox-resize-r'),
+  () => sel.custom.ativo ? {x:sel.custom.x, w:sel.custom.w} : {x:sel.pos.x, w:sel.pos.w},
+  (b) => { sel.custom.x = b.x; sel.custom.w = b.w; }, ativarCustom1, 'direita');
+attachResize($('tbox-resize-l'),
+  () => sel.custom.ativo ? {x:sel.custom.x, w:sel.custom.w} : {x:sel.pos.x, w:sel.pos.w},
+  (b) => { sel.custom.x = b.x; sel.custom.w = b.w; }, ativarCustom1, 'esquerda');
 
 attachDrag($('tbox2-handle'), $('tbox2'),
   () => sel.extra.custom.ativo ? {x:sel.extra.custom.x, y:sel.extra.custom.y} : {x:sel.extra.pos.x, y:sel.extra.pos.y},
   (x, y) => { sel.extra.custom.x = x; sel.extra.custom.y = y; },
-  () => {
-    selecionado = 'texto2';
-    if (!sel.extra.custom.ativo) {
-      sel.extra.custom.ativo = true; sel.extra.custom.x = sel.extra.pos.x; sel.extra.custom.y = sel.extra.pos.y; sel.extra.custom.w = sel.extra.pos.w;
-      $('pos2-custom-toggle').checked = true; $('pos2-custom-fields').hidden = false;
-    }
-  });
+  ativarCustom2);
+attachDragDireto($('tbox2'),
+  () => sel.extra.custom.ativo ? {x:sel.extra.custom.x, y:sel.extra.custom.y} : {x:sel.extra.pos.x, y:sel.extra.pos.y},
+  (x, y) => { sel.extra.custom.x = x; sel.extra.custom.y = y; },
+  ativarCustom2);
+attachResize($('tbox2-resize-r'),
+  () => sel.extra.custom.ativo ? {x:sel.extra.custom.x, w:sel.extra.custom.w} : {x:sel.extra.pos.x, w:sel.extra.pos.w},
+  (b) => { sel.extra.custom.x = b.x; sel.extra.custom.w = b.w; }, ativarCustom2, 'direita');
+attachResize($('tbox2-resize-l'),
+  () => sel.extra.custom.ativo ? {x:sel.extra.custom.x, w:sel.extra.custom.w} : {x:sel.extra.pos.x, w:sel.extra.pos.w},
+  (b) => { sel.extra.custom.x = b.x; sel.extra.custom.w = b.w; }, ativarCustom2, 'esquerda');
 
 attachDrag($('lbox-handle'), $('lbox'),
   () => sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y} : {x:sel.logo.x, y:sel.logo.y},
