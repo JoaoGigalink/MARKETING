@@ -482,10 +482,11 @@ footer{
             <select id="logo-variante-select" class="formato-select" title="Variante da logo" style="width:100%"></select>
           </div>
 
-          <div class="field">
+          <div class="field" id="field-logocor">
             <label>Cor da logo</label>
             <div class="sws" id="logocolkeys"></div>
           </div>
+          <p class="custom-hint" id="logocor-nota" hidden style="margin:-10px 0 20px"></p>
 
           <div class="field">
             <label class="custom-toggle" style="margin-top:0">
@@ -660,7 +661,8 @@ const COL = [
 // outras variantes do Marketing forem cadastradas: e so acrescentar aqui e no
 // backend (LOGOS em montador.py / node do Cloudinary), nada mais muda.
 const LOGOS = [
-  {k:'gigalink oficial', nome:'Gigalink Oficial'}
+  {k:'gigalink oficial', nome:'Gigalink Oficial'},
+  {k:'gigasafe vertical', nome:'GigaSafe Vertical', colorido:true}
 ];
 // Formatos do catalogo de formatos da automacao (planilha de referencia) -- os
 // marcados como categoria "imagem" na planilha, mais os 3 de LED (categoria "fisico"
@@ -1331,7 +1333,19 @@ function render(){
   $('lbox').style.top = (l.y/100*H) + 'px';
   $('lbox').style.width = lw + 'px';
   $('lbox').style.fontSize = Math.max(7, Math.round(W*0.031)) + 'px';
-  $('lbox').style.color = sel.logoCor.hex;
+  // variantes coloridas (ex.: GigaSafe) ja tem cores proprias -- tingir destruiria a
+  // marca, entao o controle de cor e ignorado/escondido pra elas (mesma regra do
+  // backend: montador.py e o node do Cloudinary devem se comportar igual).
+  if (sel.logoVariante.colorido) {
+    $('lbox').innerHTML = sel.logoVariante.nome;
+    $('lbox').style.color = '#fff';
+  } else {
+    $('lbox').innerHTML = 'giga<b>link</b>';
+    $('lbox').style.color = sel.logoCor.hex;
+  }
+  $('field-logocor').hidden = !!sel.logoVariante.colorido;
+  $('logocor-nota').hidden = !sel.logoVariante.colorido;
+  $('logocor-nota').textContent = 'Esta variante já tem cores próprias — a cor escolhida não se aplica.';
   $('lbox').style.background = sel.logoFundo.ativo
     ? hexToRgba(sel.logoFundo.col.hex, sel.logoFundo.opacidadePct / 100) : 'transparent';
 
