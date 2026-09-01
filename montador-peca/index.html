@@ -120,7 +120,13 @@ section{margin-top:60px}
    (nao mais empilhado) -- os campos com mais conteudo (posicao, fundo) tem um
    min-width maior pra nao ficar espremido, mas continuam quebrando linha em vez
    de tomar a largura inteira sozinhos. */
-.panel{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:22px 28px; align-items:start}
+/* flex (nao grid): agora cada campo e so um botao pequeno de largura variavel
+   ("Cor do texto" vs "Alinhamento do texto" tem tamanhos bem diferentes) -- grid
+   com 1fr estica cada celula pra largura da coluna toda, o que colava os botoes
+   um embaixo do outro em telas estreitas mesmo cabendo 2+ lado a lado. Flex-wrap
+   deixa cada botao com a largura do proprio conteudo e so quebra linha quando
+   nao cabe mais nenhum. */
+.panel{display:flex; flex-wrap:wrap; gap:10px 12px; align-items:flex-start}
 .panel[hidden]{display:none}
 .field{margin-bottom:0; position:relative}
 /* botao que abre/fecha o popover da ferramenta -- fica visivel na barra, o resto
@@ -294,8 +300,13 @@ section{margin-top:60px}
 .formato-select{
   font-family:var(--mono); font-size:12.5px; padding:7px 30px 7px 12px; cursor:pointer;
   border:1px solid var(--border); border-radius:999px; background:var(--card); color:var(--fg);
-  max-width:100%;
+  max-width:100%; min-width:0; text-overflow:ellipsis;
 }
+/* filho de flex sem min-width:0 nao encolhe abaixo do proprio conteudo -- o nome
+   comprido do formato ("Carrossel (1080x1350)") empurrava o botao de ampliar
+   pra fora da tela em telas estreitas */
+.stage-top > *{min-width:0}
+.stage-top{flex-wrap:wrap}
 
 .frame{
   position:relative; width:320px; border-radius:10px; overflow:hidden;
