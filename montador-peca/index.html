@@ -312,6 +312,14 @@ section{margin-top:60px}
   background:var(--navy-dark); border:1.5px solid var(--card); cursor:ew-resize;
   touch-action:none; user-select:none; box-shadow:0 1px 3px rgba(0,0,0,.35); z-index:6;
 }
+/* alcas de canto: arrastar aumenta/diminui o TAMANHO DO TEXTO (nao a largura da
+   caixa) -- mesmo gesto de "free transform" do Canva/Photoshop numa caixa de texto */
+.resize-handle-corner{
+  position:absolute; width:13px; height:13px; border-radius:3px;
+  background:var(--navy-dark); border:1.5px solid var(--card);
+  touch-action:none; user-select:none; box-shadow:0 1px 3px rgba(0,0,0,.35); z-index:7;
+}
+.resize-handle-corner.tl, .resize-handle-corner.br{cursor:nwse-resize}
 .guide{position:absolute; pointer-events:none; z-index:5}
 .guide-v{top:0; bottom:0; left:50%; width:0; border-left:1.5px dashed #ff3fa4; box-shadow:0 0 4px rgba(255,63,164,.6)}
 .guide-h{left:0; right:0; top:50%; height:0; border-top:1.5px dashed #ff3fa4; box-shadow:0 0 4px rgba(255,63,164,.6)}
@@ -570,10 +578,14 @@ footer{
           <div class="drag-handle" id="tbox-handle" title="Arrastar">⠿</div>
           <div class="drag-handle" id="tbox2-handle" title="Arrastar" hidden>⠿</div>
           <div class="drag-handle" id="lbox-handle" title="Arrastar">⠿</div>
-          <div class="resize-handle" id="tbox-resize-l" title="Redimensionar" hidden></div>
-          <div class="resize-handle" id="tbox-resize-r" title="Redimensionar" hidden></div>
-          <div class="resize-handle" id="tbox2-resize-l" title="Redimensionar" hidden></div>
-          <div class="resize-handle" id="tbox2-resize-r" title="Redimensionar" hidden></div>
+          <div class="resize-handle" id="tbox-resize-l" title="Redimensionar largura" hidden></div>
+          <div class="resize-handle" id="tbox-resize-r" title="Redimensionar largura" hidden></div>
+          <div class="resize-handle" id="tbox2-resize-l" title="Redimensionar largura" hidden></div>
+          <div class="resize-handle" id="tbox2-resize-r" title="Redimensionar largura" hidden></div>
+          <div class="resize-handle-corner tl" id="tbox-resize-tl" title="Arrastar para aumentar/diminuir o texto" hidden></div>
+          <div class="resize-handle-corner br" id="tbox-resize-br" title="Arrastar para aumentar/diminuir o texto" hidden></div>
+          <div class="resize-handle-corner tl" id="tbox2-resize-tl" title="Arrastar para aumentar/diminuir o texto" hidden></div>
+          <div class="resize-handle-corner br" id="tbox2-resize-br" title="Arrastar para aumentar/diminuir o texto" hidden></div>
           <div class="guide guide-v" id="guideV" hidden></div>
           <div class="guide guide-h" id="guideH" hidden></div>
         </div>
@@ -1170,6 +1182,50 @@ function attachResize(handle, getBox, setBox, onStart, lado){
   handle.addEventListener('touchstart', start, {passive:false});
 }
 
+// Alca de canto: arrastar aumenta/diminui o TAMANHO DO TEXTO (fontSizePct), nao a
+// largura da caixa -- mesmo gesto de "free transform" do Canva/Photoshop. 'sinal'
+// e +1 pro canto inferior-direito (arrastar pra fora/baixo aumenta) e -1 pro canto
+// superior-esquerdo (arrastar pra fora/cima, ou seja pra cima-esquerda, aumenta).
+function attachResizeFonte(handle, getFontSizePct, setFontSizePct, onStart, sinal){
+  let dragging = false, startClientX, startClientY, startPct;
+  function pos(e){ const p = e.touches ? e.touches[0] : e; return {x:p.clientX, y:p.clientY}; }
+  function start(e){
+    e.preventDefault();
+    onStart();
+    startPct = getFontSizePct();
+    const p = pos(e);
+    startClientX = p.x; startClientY = p.y;
+    dragging = true;
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchmove', move, {passive:false});
+    document.addEventListener('touchend', end);
+  }
+  function move(e){
+    if (!dragging) return;
+    e.preventDefault();
+    const p = pos(e);
+    const frame = $('frame').getBoundingClientRect();
+    // media dos dois eixos, em % do frame -- arrastar na diagonal certa aumenta,
+    // na diagonal oposta diminui, como um free transform de verdade
+    const dx = (p.x - startClientX) / frame.width * 100;
+    const dy = (p.y - startClientY) / frame.height * 100;
+    const delta = sinal * (dx + dy) / 2;
+    const novoPct = Math.min(16, Math.max(3, startPct + delta * 0.5));
+    setFontSizePct(Math.round(novoPct * 10) / 10);
+    render();
+  }
+  function end(){
+    dragging = false;
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', end);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('touchend', end);
+  }
+  handle.addEventListener('mousedown', start);
+  handle.addEventListener('touchstart', start, {passive:false});
+}
+
 // Icone da logo: um pequeno pictograma de "imagem" (moldura + sol + montanha),
 // pra diferenciar visualmente das caixas de texto (letra T) sem precisar de rotulo.
 const LOGO_ICON_SVG = '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" ' +
@@ -1513,6 +1569,10 @@ function render(){
   }
 
   // leitura visual do slider de tamanho (ainda so afeta a previa, ver hint no painel)
+  // -- tambem sincroniza aqui (nao so em sincronizarControles) porque as alcas de
+  // canto mudam sel.fontSizePct sem passar pelo proprio input
+  $('fontsize-1').value = sel.fontSizePct;
+  $('fontsize-2').value = sel.extra.fontSizePct;
   $('fontsize-1-val').textContent = sel.fontSizePct.toFixed(1) + '%';
   $('fontsize-2-val').textContent = sel.extra.fontSizePct.toFixed(1) + '%';
   $('logo-fundo-opacidade-val').textContent = sel.logoFundo.opacidadePct + '%';
@@ -1566,6 +1626,19 @@ function render(){
   }
   posicionarResize($('tbox-resize-l'), $('tbox-resize-r'), t, selecionado === 'texto1');
   posicionarResize($('tbox2-resize-l'), $('tbox2-resize-r'), t2, selecionado === 'texto2' && sel.extra.ativo);
+
+  function posicionarCantos(tl, br, alvo, mostrar){
+    tl.hidden = br.hidden = !mostrar;
+    if (!mostrar) return;
+    const TAM = 13;
+    const ax = parseFloat(alvo.style.left) || 0;
+    const ay = parseFloat(alvo.style.top) || 0;
+    const aw = alvo.offsetWidth || 0, ah = alvo.offsetHeight || 0;
+    tl.style.left = (ax - TAM/2) + 'px'; tl.style.top = (ay - TAM/2) + 'px';
+    br.style.left = (ax + aw - TAM/2) + 'px'; br.style.top = (ay + ah - TAM/2) + 'px';
+  }
+  posicionarCantos($('tbox-resize-tl'), $('tbox-resize-br'), t, selecionado === 'texto1');
+  posicionarCantos($('tbox2-resize-tl'), $('tbox2-resize-br'), t2, selecionado === 'texto2' && sel.extra.ativo);
 
   chipPos(POS, $('poskeys'),  () => sel.pos,  o => { sel.pos = o; sel.align = o.a; },  render);
   chipAlign($('alignkeys'), () => ALIGN.find(a => a.a === sel.align), o => sel.align = o.a, render);
@@ -1831,6 +1904,11 @@ attachResize($('tbox-resize-r'),
 attachResize($('tbox-resize-l'),
   () => sel.custom.ativo ? {x:sel.custom.x, w:sel.custom.w} : {x:sel.pos.x, w:sel.pos.w},
   (b) => { sel.custom.x = b.x; sel.custom.w = b.w; }, ativarCustom1, 'esquerda');
+// alcas de canto: aumentar/diminuir o tamanho do texto arrastando (Canva/Photoshop)
+attachResizeFonte($('tbox-resize-br'), () => sel.fontSizePct, v => { sel.fontSizePct = v; },
+  () => { selecionado = 'texto1'; }, 1);
+attachResizeFonte($('tbox-resize-tl'), () => sel.fontSizePct, v => { sel.fontSizePct = v; },
+  () => { selecionado = 'texto1'; }, -1);
 
 attachDrag($('tbox2-handle'), $('tbox2'),
   () => sel.extra.custom.ativo ? {x:sel.extra.custom.x, y:sel.extra.custom.y} : {x:sel.extra.pos.x, y:sel.extra.pos.y},
@@ -1846,6 +1924,10 @@ attachResize($('tbox2-resize-r'),
 attachResize($('tbox2-resize-l'),
   () => sel.extra.custom.ativo ? {x:sel.extra.custom.x, w:sel.extra.custom.w} : {x:sel.extra.pos.x, w:sel.extra.pos.w},
   (b) => { sel.extra.custom.x = b.x; sel.extra.custom.w = b.w; }, ativarCustom2, 'esquerda');
+attachResizeFonte($('tbox2-resize-br'), () => sel.extra.fontSizePct, v => { sel.extra.fontSizePct = v; },
+  () => { selecionado = 'texto2'; }, 1);
+attachResizeFonte($('tbox2-resize-tl'), () => sel.extra.fontSizePct, v => { sel.extra.fontSizePct = v; },
+  () => { selecionado = 'texto2'; }, -1);
 
 function ativarCustomLogo(){
   selecionado = 'logo';
