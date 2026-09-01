@@ -1572,16 +1572,22 @@ attachResize($('tbox2-resize-l'),
   () => sel.extra.custom.ativo ? {x:sel.extra.custom.x, w:sel.extra.custom.w} : {x:sel.extra.pos.x, w:sel.extra.pos.w},
   (b) => { sel.extra.custom.x = b.x; sel.extra.custom.w = b.w; }, ativarCustom2, 'esquerda');
 
+function ativarCustomLogo(){
+  selecionado = 'logo';
+  if (!sel.customLogo.ativo) {
+    sel.customLogo.ativo = true; sel.customLogo.x = sel.logo.x; sel.customLogo.y = sel.logo.y; sel.customLogo.w = 28;
+    $('logo-custom-toggle').checked = true; $('logo-custom-fields').hidden = false;
+  }
+}
 attachDrag($('lbox-handle'), $('lbox'),
   () => sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y} : {x:sel.logo.x, y:sel.logo.y},
   (x, y) => { sel.customLogo.x = x; sel.customLogo.y = y; },
-  () => {
-    selecionado = 'logo';
-    if (!sel.customLogo.ativo) {
-      sel.customLogo.ativo = true; sel.customLogo.x = sel.logo.x; sel.customLogo.y = sel.logo.y; sel.customLogo.w = 28;
-      $('logo-custom-toggle').checked = true; $('logo-custom-fields').hidden = false;
-    }
-  });
+  ativarCustomLogo);
+// arrastar clicando direto na logo, sem precisar do puxador -- mesmo padrao do texto
+attachDragDireto($('lbox'),
+  () => sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y} : {x:sel.logo.x, y:sel.logo.y},
+  (x, y) => { sel.customLogo.x = x; sel.customLogo.y = y; },
+  ativarCustomLogo);
 
 $('minis-toggle').addEventListener('click', () => {
   const h = $('minis');
