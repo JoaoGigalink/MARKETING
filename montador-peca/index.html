@@ -444,6 +444,21 @@ footer{
             <div class="segbar" id="alignkeys"></div>
           </div>
 
+          <div class="field">
+            <label class="custom-toggle" style="margin-top:0">
+              <input type="checkbox" id="fundo-toggle">
+              Fundo atrás do texto
+            </label>
+            <div class="custom-fields" id="fundo-fields" hidden style="grid-template-columns:1fr">
+              <div class="sws" id="fundocolkeys"></div>
+              <label style="display:flex; flex-direction:column; gap:5px; font-family:var(--mono); font-size:11px; color:var(--fg-dim); text-transform:uppercase; letter-spacing:.06em">
+                Opacidade <span id="fundo-opacidade-val" class="size-val"></span>
+                <input type="range" id="fundo-opacidade" min="10" max="100" step="5" value="70" class="size-range" style="margin:0">
+              </label>
+              <p class="custom-hint" style="margin:0">Liga um fundo colorido no lugar do escurecimento automático de contraste.</p>
+            </div>
+          </div>
+
           <div class="field" style="margin-bottom:0">
             <label for="fontsize-1">Tamanho do texto <span id="fontsize-1-val" class="size-val"></span></label>
             <input type="range" id="fontsize-1" min="3" max="16" step="0.5" value="7.2" class="size-range">
@@ -475,6 +490,21 @@ footer{
           <div class="field">
             <label>Alinhamento da segunda caixa</label>
             <div class="segbar" id="alignkeys2"></div>
+          </div>
+
+          <div class="field">
+            <label class="custom-toggle" style="margin-top:0">
+              <input type="checkbox" id="fundo2-toggle">
+              Fundo atrás do texto
+            </label>
+            <div class="custom-fields" id="fundo2-fields" hidden style="grid-template-columns:1fr">
+              <div class="sws" id="fundocolkeys2"></div>
+              <label style="display:flex; flex-direction:column; gap:5px; font-family:var(--mono); font-size:11px; color:var(--fg-dim); text-transform:uppercase; letter-spacing:.06em">
+                Opacidade <span id="fundo2-opacidade-val" class="size-val"></span>
+                <input type="range" id="fundo2-opacidade" min="10" max="100" step="5" value="70" class="size-range" style="margin:0">
+              </label>
+              <p class="custom-hint" style="margin:0">Liga um fundo colorido no lugar do escurecimento automático de contraste.</p>
+            </div>
           </div>
 
           <div class="field" style="margin-bottom:0">
@@ -703,9 +733,11 @@ let sel = {pos:posPor('canto superior esquerdo'), col:COL[0], logo:posPor('canto
   customLogo:{ativo:false, x:6, y:6, w:28},
   logoCor:COL[0],
   logoFundo:{ativo:false, col:COL.find(c => c.k === 'navy escuro'), opacidadePct:70},
+  fundo:{ativo:false, col:COL.find(c => c.k === 'navy escuro'), opacidadePct:70},
   extra:{ativo:false, pos:posPor('rodape esquerdo'), col:COL[0], align:posPor('rodape esquerdo').a,
     texto:'Oferta por tempo limitado.',
-    fontSizePct:7.2, custom:{ativo:false, x:6, y:70, w:55}}};
+    fontSizePct:7.2, custom:{ativo:false, x:6, y:70, w:55},
+    fundo:{ativo:false, col:COL.find(c => c.k === 'navy escuro'), opacidadePct:70}}};
 
 // qual item esta selecionado no momento -- controla qual painel de controles aparece
 // e qual caixa recebe o destaque/handle de arrastar na previa.
@@ -729,9 +761,13 @@ function serializar(){
     custom: {...sel.custom}, customLogo: {...sel.customLogo},
     logoFundo: { ativo: sel.logoFundo.ativo, col: colSerializar(sel.logoFundo.col),
                  opacidadePct: sel.logoFundo.opacidadePct },
+    fundo: { ativo: sel.fundo.ativo, col: colSerializar(sel.fundo.col),
+             opacidadePct: sel.fundo.opacidadePct },
     extra: { ativo: sel.extra.ativo, pos: sel.extra.pos.k, col: colSerializar(sel.extra.col),
              align: sel.extra.align, texto: sel.extra.texto, fontSizePct: sel.extra.fontSizePct,
-             custom: {...sel.extra.custom} },
+             custom: {...sel.extra.custom},
+             fundo: { ativo: sel.extra.fundo.ativo, col: colSerializar(sel.extra.fundo.col),
+                      opacidadePct: sel.extra.fundo.opacidadePct } },
   };
 }
 
@@ -749,16 +785,19 @@ function aplicarEstado(e){
     // caem no padrao em vez de invalidar o estado inteiro
     sel.logoVariante = LOGOS.find(l => l.k === e.logoVariante) || LOGOS[0];
     sel.logoCor = colResolver(e.logoCor) || COL[0];
-    sel.logoFundo = e.logoFundo
-      ? { ativo: !!e.logoFundo.ativo, col: colResolver(e.logoFundo.col) || COL.find(c => c.k === 'navy escuro'),
-          opacidadePct: e.logoFundo.opacidadePct || 70 }
+    const F_ = f => f
+      ? { ativo: !!f.ativo, col: colResolver(f.col) || COL.find(c => c.k === 'navy escuro'),
+          opacidadePct: f.opacidadePct || 70 }
       : { ativo: false, col: COL.find(c => c.k === 'navy escuro'), opacidadePct: 70 };
+    sel.logoFundo = F_(e.logoFundo);
+    sel.fundo = F_(e.fundo);
     sel.pos = pos; sel.col = col; sel.logo = logo; sel.ratio = ratio; sel.align = e.align;
     sel.texto = e.texto; sel.fontSizePct = e.fontSizePct;
     sel.custom = {...e.custom}; sel.customLogo = {...e.customLogo};
     sel.extra.ativo = e.extra.ativo; sel.extra.pos = ep; sel.extra.col = ec;
     sel.extra.align = e.extra.align; sel.extra.texto = e.extra.texto;
     sel.extra.fontSizePct = e.extra.fontSizePct; sel.extra.custom = {...e.extra.custom};
+    sel.extra.fundo = F_(e.extra.fundo);
     return true;
   } catch (err) { return false; }
 }
@@ -776,6 +815,12 @@ function sincronizarControles(){
   $('logo-fundo-toggle').checked = sel.logoFundo.ativo;
   $('logo-fundo-fields').hidden = !sel.logoFundo.ativo;
   $('logo-fundo-opacidade').value = sel.logoFundo.opacidadePct;
+  $('fundo-toggle').checked = sel.fundo.ativo;
+  $('fundo-fields').hidden = !sel.fundo.ativo;
+  $('fundo-opacidade').value = sel.fundo.opacidadePct;
+  $('fundo2-toggle').checked = sel.extra.fundo.ativo;
+  $('fundo2-fields').hidden = !sel.extra.fundo.ativo;
+  $('fundo2-opacidade').value = sel.extra.fundo.opacidadePct;
   $('fontsize-1').value = sel.fontSizePct;
   $('fontsize-2').value = sel.extra.fontSizePct;
   const i = FORMATOS.indexOf(sel.ratio);
@@ -1220,9 +1265,9 @@ function desenharPeca(ctx, W, H){
   let algumApertado = false;
   const caixas = [
     { on: true, p: sel.custom.ativo ? {x:sel.custom.x,y:sel.custom.y,w:sel.custom.w} : sel.pos,
-      texto: sel.texto, cor: sel.col.hex, align: sel.align },
+      texto: sel.texto, cor: sel.col.hex, align: sel.align, fundo: sel.fundo },
     { on: sel.extra.ativo, p: sel.extra.custom.ativo ? {x:sel.extra.custom.x,y:sel.extra.custom.y,w:sel.extra.custom.w} : sel.extra.pos,
-      texto: sel.extra.texto, cor: sel.extra.col.hex, align: sel.extra.align },
+      texto: sel.extra.texto, cor: sel.extra.col.hex, align: sel.extra.align, fundo: sel.extra.fundo },
   ];
   caixas.forEach(c => {
     if (!c.on || !String(c.texto || '').trim()) return;
@@ -1230,6 +1275,12 @@ function desenharPeca(ctx, W, H){
     const marginY = Math.round(H * c.p.y / 100);
     const r = afCalcular(c.texto, larguraTexto, W, H, marginY);
     if (r.apertado) algumApertado = true;
+    if (c.fundo && c.fundo.ativo){
+      const pad = Math.round(r.fonte * 0.42);
+      const altBloco = r.linhas.length * r.fonte * AF_ALTURA_LINHA;
+      ctx.fillStyle = hexToRgba(c.fundo.col.hex, c.fundo.opacidadePct / 100);
+      ctx.fillRect(W * c.p.x / 100 - pad, marginY - pad, larguraTexto + 2*pad, altBloco + 2*pad);
+    }
     ctx.font = '700 ' + r.fonte + 'px "Archivo", system-ui, sans-serif';
     ctx.fillStyle = c.cor;
     ctx.textBaseline = 'top';
@@ -1364,6 +1415,18 @@ function render(){
   t.style.textAlign = sel.align;
   t.style.fontSize = fs + 'px';
   t.style.color = sel.col.hex;
+  // fundo atras do texto: box-shadow com spread (sem blur/raio) desenha o retangulo
+  // PRA FORA da caixa sem alterar a largura de quebra de linha do proprio elemento --
+  // mesmo efeito do retangulo com padding que o backend desenha atras do texto.
+  if (sel.fundo.ativo) {
+    const pad = Math.round(fs * 0.42);
+    const rgba = hexToRgba(sel.fundo.col.hex, sel.fundo.opacidadePct / 100);
+    t.style.backgroundColor = rgba;
+    t.style.boxShadow = '0 0 0 ' + pad + 'px ' + rgba;
+  } else {
+    t.style.backgroundColor = 'transparent';
+    t.style.boxShadow = 'none';
+  }
 
   const l = sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y, a:'left'} : sel.logo;
   const lw = (sel.customLogo.ativo ? sel.customLogo.w : 28) / 100 * W;
@@ -1405,7 +1468,14 @@ function render(){
 
   // contraste real sob a caixa de texto
   const box = t.getBoundingClientRect(), fr = $('frame').getBoundingClientRect();
-  const bg = measure({left: box.left - fr.left, top: box.top - fr.top, width: box.width, height: box.height});
+  let bg = measure({left: box.left - fr.left, top: box.top - fr.top, width: box.width, height: box.height});
+  // com fundo ligado, o que importa pro contraste e o fundo colorido por cima da
+  // foto, nao a foto crua -- mistura por luminancia (aproximado, mas evita o
+  // indicador continuar dizendo "ilegivel" com um fundo solido cobrindo a foto)
+  if (bg !== null && sel.fundo.ativo) {
+    const alpha = sel.fundo.opacidadePct / 100;
+    bg = bg * (1 - alpha) + hexLum(sel.fundo.col.hex) * alpha;
+  }
   const v = $('verdict'), dot = v.querySelector('.dot'), lab = v.querySelector('span:last-child');
   if(bg === null){ v.style.display = 'none'; }
   else {
@@ -1428,14 +1498,26 @@ function render(){
     t2.style.top = (p2.y/100*H) + 'px';
     t2.style.width = (p2.w/100*W) + 'px';
     t2.style.textAlign = sel.extra.align;
-    t2.style.fontSize = Math.max(13, Math.round(W * sel.extra.fontSizePct / 100)) + 'px';
+    const fs2 = Math.max(13, Math.round(W * sel.extra.fontSizePct / 100));
+    t2.style.fontSize = fs2 + 'px';
     t2.style.color = sel.extra.col.hex;
+    if (sel.extra.fundo.ativo) {
+      const pad2 = Math.round(fs2 * 0.42);
+      const rgba2 = hexToRgba(sel.extra.fundo.col.hex, sel.extra.fundo.opacidadePct / 100);
+      t2.style.backgroundColor = rgba2;
+      t2.style.boxShadow = '0 0 0 ' + pad2 + 'px ' + rgba2;
+    } else {
+      t2.style.backgroundColor = 'transparent';
+      t2.style.boxShadow = 'none';
+    }
   }
 
   // leitura visual do slider de tamanho (ainda so afeta a previa, ver hint no painel)
   $('fontsize-1-val').textContent = sel.fontSizePct.toFixed(1) + '%';
   $('fontsize-2-val').textContent = sel.extra.fontSizePct.toFixed(1) + '%';
   $('logo-fundo-opacidade-val').textContent = sel.logoFundo.opacidadePct + '%';
+  $('fundo-opacidade-val').textContent = sel.fundo.opacidadePct + '%';
+  $('fundo2-opacidade-val').textContent = sel.extra.fundo.opacidadePct + '%';
 
   // qual item esta selecionado: mostra so o painel dele e destaca a caixa certa na previa
   $('panel-texto1').hidden = selecionado !== 'texto1';
@@ -1494,6 +1576,8 @@ function render(){
   buildColorSwatches($('colkeys2'), () => sel.extra.col, o => sel.extra.col = o, render);
   buildColorSwatches($('logocolkeys'), () => sel.logoCor, o => sel.logoCor = o, render);
   buildColorSwatches($('logofundocolkeys'), () => sel.logoFundo.col, o => sel.logoFundo.col = o, render);
+  buildColorSwatches($('fundocolkeys'), () => sel.fundo.col, o => sel.fundo.col = o, render);
+  buildColorSwatches($('fundocolkeys2'), () => sel.extra.fundo.col, o => sel.extra.fundo.col = o, render);
 
   $('poskeys2').style.opacity = sel.extra.custom.ativo ? '0.4' : '1';
   $('poskeys2').style.pointerEvents = sel.extra.custom.ativo ? 'none' : 'auto';
@@ -1547,6 +1631,14 @@ function render(){
       'Opacidade do fundo do logo: [' + sel.logoFundo.opacidadePct + '%]';
   }
 
+  saida += '\nFundo do texto: [' + (sel.fundo.ativo ? 'ativo' : 'inativo') + ']';
+  if (sel.fundo.ativo) {
+    const corFundoTexto = sel.fundo.col.custom ? 'personalizada ' + sel.fundo.col.hex : sel.fundo.col.k;
+    saida += '\n' +
+      'Cor do fundo do texto: [' + corFundoTexto + ']\n' +
+      'Opacidade do fundo do texto: [' + sel.fundo.opacidadePct + '%]';
+  }
+
   if (sel.extra.ativo) {
     const posicaoTexto2 = sel.extra.custom.ativo
       ? 'personalizada x=' + sel.extra.custom.x + '% y=' + sel.extra.custom.y + '% l=' + sel.extra.custom.w + '%'
@@ -1557,7 +1649,14 @@ function render(){
       'Texto 2: ' + sel.extra.texto.replace(/\n/g, ' / ') + '\n' +
       'Posicao 2: [' + posicaoTexto2 + ']\n' +
       'Cor 2: [' + corTexto2 + ']\n' +
-      'Alinhamento 2: [' + alinhamentoTexto2 + ']';
+      'Alinhamento 2: [' + alinhamentoTexto2 + ']\n' +
+      'Fundo do texto 2: [' + (sel.extra.fundo.ativo ? 'ativo' : 'inativo') + ']';
+    if (sel.extra.fundo.ativo) {
+      const corFundoTexto2 = sel.extra.fundo.col.custom ? 'personalizada ' + sel.extra.fundo.col.hex : sel.extra.fundo.col.k;
+      saida += '\n' +
+        'Cor do fundo do texto 2: [' + corFundoTexto2 + ']\n' +
+        'Opacidade do fundo do texto 2: [' + sel.extra.fundo.opacidadePct + '%]';
+    }
   }
 
   $('out').textContent = saida;
@@ -1638,6 +1737,25 @@ $('logo-fundo-toggle').addEventListener('change', e => {
 });
 $('logo-fundo-opacidade').addEventListener('input', () => {
   sel.logoFundo.opacidadePct = Number($('logo-fundo-opacidade').value) || 70;
+  render();
+});
+
+$('fundo-toggle').addEventListener('change', e => {
+  sel.fundo.ativo = e.target.checked;
+  $('fundo-fields').hidden = !sel.fundo.ativo;
+  render();
+});
+$('fundo-opacidade').addEventListener('input', () => {
+  sel.fundo.opacidadePct = Number($('fundo-opacidade').value) || 70;
+  render();
+});
+$('fundo2-toggle').addEventListener('change', e => {
+  sel.extra.fundo.ativo = e.target.checked;
+  $('fundo2-fields').hidden = !sel.extra.fundo.ativo;
+  render();
+});
+$('fundo2-opacidade').addEventListener('input', () => {
+  sel.extra.fundo.opacidadePct = Number($('fundo2-opacidade').value) || 70;
   render();
 });
 
