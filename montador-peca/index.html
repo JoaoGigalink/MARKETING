@@ -115,12 +115,11 @@ section{margin-top:60px}
 .controls-hint{
   font-size:12.5px; color:var(--fg-dim); margin:0 0 18px; max-width:38ch;
 }
-/* FIX 2026-09-01: com o topo virando uma barra larga, um painel de coluna unica
-   (herdado do layout antigo, estreito) ficava com um monte de espaco vazio a
-   direita e os campos de ajuste fino (X/Y/L) espremidos em 3 colunas dentro de uma
-   celula estreita. Agora o painel e uma grade que usa a largura toda, e cada campo
-   ocupa uma celula -- os que tem slider/ajuste fino pedem a linha inteira (ver
-   grid-column:1/-1 inline nesses campos especificos no HTML). */
+/* FIX 2026-09-01: com o topo virando uma barra larga, o painel e uma grade que usa
+   a largura toda, e todo campo fica lado a lado com os outros na mesma linha
+   (nao mais empilhado) -- os campos com mais conteudo (posicao, fundo) tem um
+   min-width maior pra nao ficar espremido, mas continuam quebrando linha em vez
+   de tomar a largura inteira sozinhos. */
 .panel{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:22px 28px; align-items:start}
 .panel[hidden]{display:none}
 .field{margin-bottom:0}
@@ -476,7 +475,7 @@ footer{
         <p class="controls-hint" id="controls-hint">O texto você digita direto em cima da imagem.</p>
 
         <div class="panel" id="panel-texto1">
-          <div class="field" style="grid-column:1/-1">
+          <div class="field" style="grid-column:span 2; min-width:240px">
             <label>Posição do texto</label>
             <div class="keys" id="poskeys"></div>
             <label class="custom-toggle">
@@ -501,7 +500,7 @@ footer{
             <div class="segbar" id="alignkeys"></div>
           </div>
 
-          <div class="field" style="grid-column:1/-1">
+          <div class="field" style="grid-column:span 2; min-width:240px">
             <label class="custom-toggle" style="margin-top:0">
               <input type="checkbox" id="fundo-toggle">
               Fundo atrás do texto
@@ -528,7 +527,7 @@ footer{
         </div>
 
         <div class="panel" id="panel-texto2" hidden>
-          <div class="field" style="grid-column:1/-1">
+          <div class="field" style="grid-column:span 2; min-width:240px">
             <label>Posição da segunda caixa</label>
             <div class="keys" id="poskeys2"></div>
             <label class="custom-toggle">
@@ -553,7 +552,7 @@ footer{
             <div class="segbar" id="alignkeys2"></div>
           </div>
 
-          <div class="field" style="grid-column:1/-1">
+          <div class="field" style="grid-column:span 2; min-width:240px">
             <label class="custom-toggle" style="margin-top:0">
               <input type="checkbox" id="fundo2-toggle">
               Fundo atrás do texto
@@ -591,7 +590,7 @@ footer{
             <p class="custom-hint" id="logocor-nota" hidden style="margin:10px 0 0"></p>
           </div>
 
-          <div class="field" style="grid-column:1/-1">
+          <div class="field" style="grid-column:span 2; min-width:240px">
             <label class="custom-toggle" style="margin-top:0">
               <input type="checkbox" id="logo-fundo-toggle">
               Fundo atrás da logo
@@ -606,7 +605,7 @@ footer{
             </div>
           </div>
 
-          <div class="field" style="grid-column:1/-1">
+          <div class="field" style="grid-column:span 2; min-width:240px">
             <label>Posição da logo</label>
             <div class="keys" id="logokeys"></div>
             <label class="custom-toggle">
