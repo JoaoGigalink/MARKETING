@@ -72,20 +72,51 @@ section{margin-top:60px}
    so 320px, ou seja a coisa que a pessoa precisa julgar era a menor da tela. Agora os
    controles ficam numa coluna estreita fixa e a previa fica com todo o resto. */
 .tool{
-  display:grid; grid-template-columns:264px minmax(0,1fr); gap:28px;
+  display:grid; grid-template-columns:66px 212px minmax(0,1fr); gap:0;
   background:var(--card); border:1px solid var(--border); border-radius:14px;
-  padding:26px; box-shadow:var(--shadow);
+  box-shadow:var(--shadow); overflow:hidden;
 }
 @media (max-width:820px){ .tool{grid-template-columns:1fr} }
 
-.controls{display:flex; flex-direction:column}
-.controls-hint{
-  font-size:13.5px; color:var(--fg-dim); margin:0 0 16px; max-width:38ch;
+/* --- rail de itens (Text/Logo), estilo editor de peca: icone + rotulo empilhados --- */
+.rail{
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:20px 8px; border-right:1px solid var(--border); background:var(--chip);
 }
-.item-list{display:flex; gap:6px; margin-bottom:22px}
-.item-list .icon-btn{font-family:var(--display); font-weight:700; font-size:15px}
-.item-remove{color:var(--fg-dim)}
-.item-remove:hover{color:var(--bad); border-color:var(--bad)}
+.rail-btn{
+  display:flex; flex-direction:column; align-items:center; gap:4px; width:100%;
+  padding:9px 2px 8px; border:none; border-radius:9px; background:transparent;
+  color:var(--fg-dim); cursor:pointer; font-family:var(--body);
+}
+.rail-btn .ic{
+  display:flex; align-items:center; justify-content:center; width:26px; height:26px;
+  font-family:var(--display); font-weight:700; font-size:14px;
+}
+.rail-btn .lb{font-size:10px; letter-spacing:.01em; line-height:1.1; text-align:center}
+.rail-btn:hover{background:var(--bg); color:var(--fg)}
+.rail-btn[aria-pressed="true"]{background:var(--navy-dark); color:var(--card)}
+:root[data-theme="dark"] .rail-btn[aria-pressed="true"],
+:root:not([data-theme="light"]) .rail-btn[aria-pressed="true"]{ color:#071a33 }
+.rail-remove{
+  width:22px; height:22px; border-radius:50%; border:1px solid var(--border);
+  background:var(--bg); color:var(--fg-dim); font-size:12px; line-height:1; cursor:pointer;
+  margin-top:-2px;
+}
+.rail-remove:hover{color:var(--bad); border-color:var(--bad)}
+@media (max-width:820px){
+  .rail{flex-direction:row; flex-wrap:wrap; justify-content:center; border-right:none; border-bottom:1px solid var(--border); padding:10px 14px}
+  .rail-btn{width:auto; flex:0 0 auto; padding:7px 12px; flex-direction:row; gap:6px}
+  .rail-btn .lb{font-size:12px}
+}
+
+.controls{display:flex; flex-direction:column; padding:22px 20px; min-width:0}
+.controls-head{
+  font-family:var(--display); font-weight:700; font-size:15px; color:var(--navy-dark);
+  margin:0 0 4px;
+}
+.controls-hint{
+  font-size:12.5px; color:var(--fg-dim); margin:0 0 18px; max-width:38ch;
+}
 .panel{display:flex; flex-direction:column}
 .panel[hidden]{display:none}
 .field{margin-bottom:20px}
@@ -142,6 +173,12 @@ section{margin-top:60px}
 }
 .icon-btn:hover{border-color:var(--navy)}
 
+/* grupo segmentado (alinhamento) -- botoes colados, uma unica borda externa,
+   igual editores de texto de mercado (design.com, Canva, Figma) */
+.segbar{display:inline-flex; border:1px solid var(--border); border-radius:8px; overflow:hidden; width:fit-content}
+.segbar .icon-btn{border:none; border-radius:0; min-width:36px}
+.segbar .icon-btn + .icon-btn{border-left:1px solid var(--border)}
+
 /* grade 3x3 de posicao: a celula ocupada representa onde o texto cai na peca */
 .posgrid3{display:grid; grid-template-columns:repeat(3,1fr); gap:5px; max-width:190px}
 .poscell{
@@ -172,10 +209,13 @@ section{margin-top:60px}
 .sw[aria-pressed="true"]{border-color:var(--navy-dark); box-shadow:inset 0 0 0 1px var(--navy-dark)}
 
 /* --- preview --- */
-.stage{display:flex; flex-direction:column; gap:12px; align-items:center; min-width:0}
+.stage{
+  display:flex; flex-direction:column; gap:14px; align-items:center; min-width:0;
+  background:var(--bg); padding:26px 22px; border-left:1px solid var(--border);
+}
 .formato-select{
   font-family:var(--mono); font-size:12.5px; padding:7px 30px 7px 12px; cursor:pointer;
-  border:1px solid var(--border); border-radius:999px; background:var(--bg); color:var(--fg);
+  border:1px solid var(--border); border-radius:999px; background:var(--card); color:var(--fg);
   max-width:100%;
 }
 
@@ -183,6 +223,7 @@ section{margin-top:60px}
   position:relative; width:320px; border-radius:10px; overflow:hidden;
   border:1px solid var(--border); background:#000; flex:none;
   transition:transform .18s ease; max-width:100%;
+  box-shadow:0 4px 16px rgba(8,56,122,.14), 0 1px 3px rgba(8,56,122,.1);
 }
 .frame canvas{display:block; width:100%; height:100%}
 .stage-top{display:flex; align-items:center; gap:8px}
@@ -350,10 +391,11 @@ footer{
     do texto.</p>
 
     <div class="tool">
+      <div class="rail" id="itemlist"></div>
+
       <div class="controls">
-        <p class="controls-hint">Escolha o item, ajuste ao lado. O texto você digita direto
-        em cima da imagem.</p>
-        <div class="item-list" id="itemlist"></div>
+        <p class="controls-head" id="controls-head">Texto principal</p>
+        <p class="controls-hint" id="controls-hint">O texto você digita direto em cima da imagem.</p>
 
         <div class="panel" id="panel-texto1">
           <div class="field">
@@ -378,7 +420,7 @@ footer{
 
           <div class="field">
             <label>Alinhamento do texto</label>
-            <div class="keys" id="alignkeys"></div>
+            <div class="segbar" id="alignkeys"></div>
           </div>
 
           <div class="field" style="margin-bottom:0">
@@ -411,7 +453,7 @@ footer{
 
           <div class="field">
             <label>Alinhamento da segunda caixa</label>
-            <div class="keys" id="alignkeys2"></div>
+            <div class="segbar" id="alignkeys2"></div>
           </div>
 
           <div class="field" style="margin-bottom:0">
@@ -965,11 +1007,11 @@ const LOGO_ICON_SVG = '<svg viewBox="0 0 20 20" width="18" height="18" fill="non
 function renderItemList(){
   const host = $('itemlist');
   host.innerHTML = '';
-  function addBtn(id, title, innerHTML){
+  function addBtn(id, title, iconHTML, label){
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'icon-btn';
+    b.type = 'button'; b.className = 'rail-btn';
     b.title = title; b.setAttribute('aria-label', title);
-    b.innerHTML = innerHTML;
+    b.innerHTML = '<span class="ic">' + iconHTML + '</span><span class="lb">' + label + '</span>';
     b.setAttribute('aria-pressed', selecionado === id ? 'true' : 'false');
     b.addEventListener('click', () => {
       if (id === 'texto2' && !sel.extra.ativo) sel.extra.ativo = true;
@@ -978,13 +1020,14 @@ function renderItemList(){
     });
     return b;
   }
-  host.appendChild(addBtn('texto1', 'Texto principal', 'T'));
+  host.appendChild(addBtn('texto1', 'Texto principal', 'T', 'Texto'));
   host.appendChild(addBtn('texto2',
     sel.extra.ativo ? 'Texto 2' : 'Adicionar segunda caixa de texto',
-    sel.extra.ativo ? 'T<span style="font-size:9px;vertical-align:sub">2</span>' : '+'));
+    sel.extra.ativo ? 'T<span style="font-size:9px;vertical-align:sub">2</span>' : '+',
+    sel.extra.ativo ? 'Texto 2' : 'Adicionar'));
   if (sel.extra.ativo) {
     const rm = document.createElement('button');
-    rm.type = 'button'; rm.className = 'icon-btn item-remove'; rm.textContent = '×';
+    rm.type = 'button'; rm.className = 'rail-remove'; rm.textContent = '×';
     rm.title = 'Remover segunda caixa de texto'; rm.setAttribute('aria-label', 'Remover segunda caixa de texto');
     rm.addEventListener('click', () => {
       sel.extra.ativo = false;
@@ -993,7 +1036,7 @@ function renderItemList(){
     });
     host.appendChild(rm);
   }
-  host.appendChild(addBtn('logo', 'Logo', LOGO_ICON_SVG));
+  host.appendChild(addBtn('logo', 'Logo', LOGO_ICON_SVG, 'Logo'));
 }
 
 // FIX 2026-09-01: a previa era fixa em 320px, pequena demais pra julgar posicao (o
@@ -1207,6 +1250,11 @@ function render(){
   $('panel-texto1').hidden = selecionado !== 'texto1';
   $('panel-texto2').hidden = selecionado !== 'texto2';
   $('panel-logo').hidden = selecionado !== 'logo';
+  $('controls-head').textContent = selecionado === 'texto1' ? 'Texto principal'
+    : selecionado === 'texto2' ? 'Segunda caixa de texto' : 'Logo';
+  $('controls-hint').textContent = selecionado === 'logo'
+    ? 'Arraste a logo na imagem ou escolha a posição ao lado.'
+    : 'O texto você digita direto em cima da imagem.';
   t.classList.toggle('selecionado', selecionado === 'texto1');
   t2.classList.toggle('selecionado', selecionado === 'texto2');
   $('lbox').classList.toggle('selecionado', selecionado === 'logo');
