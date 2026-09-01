@@ -115,9 +115,15 @@ section{margin-top:60px}
 .controls-hint{
   font-size:12.5px; color:var(--fg-dim); margin:0 0 18px; max-width:38ch;
 }
-.panel{display:flex; flex-direction:column}
+/* FIX 2026-09-01: com o topo virando uma barra larga, um painel de coluna unica
+   (herdado do layout antigo, estreito) ficava com um monte de espaco vazio a
+   direita e os campos de ajuste fino (X/Y/L) espremidos em 3 colunas dentro de uma
+   celula estreita. Agora o painel e uma grade que usa a largura toda, e cada campo
+   ocupa uma celula -- os que tem slider/ajuste fino pedem a linha inteira (ver
+   grid-column:1/-1 inline nesses campos especificos no HTML). */
+.panel{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:24px 32px; align-items:start}
 .panel[hidden]{display:none}
-.field{margin-bottom:20px}
+.field{margin-bottom:0}
 .field > label{
   display:block; font-family:var(--mono); font-size:11px; letter-spacing:.12em;
   text-transform:uppercase; color:var(--fg-dim); margin-bottom:8px;
@@ -133,8 +139,12 @@ section{margin-top:60px}
 }
 .custom-toggle input{accent-color:var(--navy-dark)}
 .custom-fields{
-  display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:11px;
+  display:grid; grid-template-columns:1fr; gap:10px; margin-top:11px;
 }
+/* X/Y/L (ajuste fino de posicao) empilhados, mas sem esticar a largura toda do
+   painel -- os campos de fundo (cor+opacidade) usam a mesma classe base e querem
+   a largura inteira, entao o limite fica so nesta variante */
+.custom-fields.coords{max-width:220px}
 .custom-fields[hidden]{display:none}
 .custom-fields label{
   display:flex; flex-direction:column; gap:5px; font-family:var(--mono); font-size:11px;
@@ -425,14 +435,14 @@ footer{
         <p class="controls-hint" id="controls-hint">O texto você digita direto em cima da imagem.</p>
 
         <div class="panel" id="panel-texto1">
-          <div class="field">
+          <div class="field" style="grid-column:1/-1">
             <label>Posição do texto</label>
             <div class="keys" id="poskeys"></div>
             <label class="custom-toggle">
               <input type="checkbox" id="pos-custom-toggle">
               Ajuste fino
             </label>
-            <div class="custom-fields" id="pos-custom-fields" hidden>
+            <div class="custom-fields coords" id="pos-custom-fields" hidden>
               <label title="X — distância do canto esquerdo">X<input type="number" id="pos-x" min="0" max="95" value="6" step="1"></label>
               <label title="Y — distância do topo">Y<input type="number" id="pos-y" min="0" max="95" value="6" step="1"></label>
               <label title="Largura da caixa de texto">L<input type="number" id="pos-w" min="10" max="100" value="55" step="1"></label>
@@ -450,7 +460,7 @@ footer{
             <div class="segbar" id="alignkeys"></div>
           </div>
 
-          <div class="field">
+          <div class="field" style="grid-column:1/-1">
             <label class="custom-toggle" style="margin-top:0">
               <input type="checkbox" id="fundo-toggle">
               Fundo atrás do texto
@@ -465,7 +475,7 @@ footer{
             </div>
           </div>
 
-          <div class="field" style="margin-bottom:0">
+          <div class="field" style="grid-column:1/-1">
             <label for="fontsize-1">Tamanho do texto <span id="fontsize-1-val" class="size-val"></span></label>
             <input type="range" id="fontsize-1" min="3" max="16" step="0.5" value="7.2" class="size-range">
             <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
@@ -473,14 +483,14 @@ footer{
         </div>
 
         <div class="panel" id="panel-texto2" hidden>
-          <div class="field">
+          <div class="field" style="grid-column:1/-1">
             <label>Posição da segunda caixa</label>
             <div class="keys" id="poskeys2"></div>
             <label class="custom-toggle">
               <input type="checkbox" id="pos2-custom-toggle">
               Ajuste fino
             </label>
-            <div class="custom-fields" id="pos2-custom-fields" hidden>
+            <div class="custom-fields coords" id="pos2-custom-fields" hidden>
               <label title="X — distância do canto esquerdo">X<input type="number" id="pos2-x" min="0" max="95" value="6" step="1"></label>
               <label title="Y — distância do topo">Y<input type="number" id="pos2-y" min="0" max="95" value="6" step="1"></label>
               <label title="Largura da caixa de texto">L<input type="number" id="pos2-w" min="10" max="100" value="55" step="1"></label>
@@ -498,7 +508,7 @@ footer{
             <div class="segbar" id="alignkeys2"></div>
           </div>
 
-          <div class="field">
+          <div class="field" style="grid-column:1/-1">
             <label class="custom-toggle" style="margin-top:0">
               <input type="checkbox" id="fundo2-toggle">
               Fundo atrás do texto
@@ -513,7 +523,7 @@ footer{
             </div>
           </div>
 
-          <div class="field" style="margin-bottom:0">
+          <div class="field" style="grid-column:1/-1">
             <label for="fontsize-2">Tamanho do texto <span id="fontsize-2-val" class="size-val"></span></label>
             <input type="range" id="fontsize-2" min="3" max="16" step="0.5" value="7.2" class="size-range">
             <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
@@ -529,10 +539,10 @@ footer{
           <div class="field" id="field-logocor">
             <label>Cor da logo</label>
             <div class="sws" id="logocolkeys"></div>
+            <p class="custom-hint" id="logocor-nota" hidden style="margin:10px 0 0"></p>
           </div>
-          <p class="custom-hint" id="logocor-nota" hidden style="margin:-10px 0 20px"></p>
 
-          <div class="field">
+          <div class="field" style="grid-column:1/-1">
             <label class="custom-toggle" style="margin-top:0">
               <input type="checkbox" id="logo-fundo-toggle">
               Fundo atrás da logo
@@ -546,14 +556,14 @@ footer{
             </div>
           </div>
 
-          <div class="field" style="margin-bottom:0">
+          <div class="field" style="grid-column:1/-1">
             <label>Posição da logo</label>
             <div class="keys" id="logokeys"></div>
             <label class="custom-toggle">
               <input type="checkbox" id="logo-custom-toggle">
               Ajuste fino
             </label>
-            <div class="custom-fields" id="logo-custom-fields" hidden>
+            <div class="custom-fields coords" id="logo-custom-fields" hidden>
               <label title="X — distância do canto esquerdo">X<input type="number" id="logo-x" min="0" max="95" value="6" step="1"></label>
               <label title="Y — distância do topo">Y<input type="number" id="logo-y" min="0" max="95" value="6" step="1"></label>
               <label title="Largura da logo">L<input type="number" id="logo-w" min="5" max="80" value="28" step="1"></label>
@@ -1571,8 +1581,10 @@ function render(){
   // canto mudam sel.fontSizePct sem passar pelo proprio input
   $('fontsize-1').value = sel.fontSizePct;
   $('fontsize-2').value = sel.extra.fontSizePct;
-  $('fontsize-1-val').textContent = sel.fontSizePct.toFixed(1) + '%';
-  $('fontsize-2-val').textContent = sel.extra.fontSizePct.toFixed(1) + '%';
+  // px calculado sobre a largura REAL do formato escolhido (sel.ratio.refW), nao o
+  // canvas pequeno da previa -- e o tamanho que sai de fato na peca
+  $('fontsize-1-val').textContent = Math.round(sel.ratio.refW * sel.fontSizePct / 100) + 'px (' + sel.fontSizePct.toFixed(1) + '%)';
+  $('fontsize-2-val').textContent = Math.round(sel.ratio.refW * sel.extra.fontSizePct / 100) + 'px (' + sel.extra.fontSizePct.toFixed(1) + '%)';
   $('logo-fundo-opacidade-val').textContent = sel.logoFundo.opacidadePct + '%';
   $('fundo-opacidade-val').textContent = sel.fundo.opacidadePct + '%';
   $('fundo2-opacidade-val').textContent = sel.extra.fundo.opacidadePct + '%';
