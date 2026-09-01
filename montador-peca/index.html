@@ -122,11 +122,28 @@ section{margin-top:60px}
    de tomar a largura inteira sozinhos. */
 .panel{display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr)); gap:22px 28px; align-items:start}
 .panel[hidden]{display:none}
-.field{margin-bottom:0}
-.field > label{
-  display:block; font-family:var(--display); font-weight:700; font-size:13.5px;
-  letter-spacing:0; color:var(--fg); margin-bottom:9px;
+.field{margin-bottom:0; position:relative}
+/* botao que abre/fecha o popover da ferramenta -- fica visivel na barra, o resto
+   (posicao, cores, sliders...) so aparece depois de clicar, estilo Photoshop/Figma */
+.field-trigger{
+  display:inline-flex; align-items:center; gap:6px; padding:10px 15px;
+  border:1px solid var(--border); border-radius:9px; background:var(--bg); color:var(--fg);
+  font-family:var(--display); font-weight:600; font-size:13px; cursor:pointer; white-space:nowrap;
 }
+.field-trigger:hover{border-color:var(--navy)}
+.field-trigger[aria-expanded="true"]{background:var(--navy-dark); border-color:var(--navy-dark); color:var(--card)}
+:root[data-theme="dark"] .field-trigger[aria-expanded="true"],
+:root:not([data-theme="light"]) .field-trigger[aria-expanded="true"]{ color:#071a33 }
+/* posicionado via JS (position:fixed) pra nao ser cortado pelo overflow:hidden do
+   .tool -- o campo "Fundo atras..." perto do fim do painel abriria um popover
+   parcialmente invisivel se isso ficasse position:absolute dentro do container */
+.field-pop{
+  position:fixed; z-index:45; min-width:240px; max-width:320px;
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  box-shadow:0 16px 40px rgba(8,56,122,.2), 0 2px 10px rgba(8,56,122,.1);
+  padding:16px; display:flex; flex-direction:column; gap:14px;
+}
+.field-pop[hidden]{display:none}
 .key:focus-visible, .sw:focus-visible, .icon-btn:focus-visible,
 .formato-select:focus-visible, .copy:focus-visible, .tbox:focus{
   outline:2px solid var(--navy); outline-offset:2px;
@@ -475,148 +492,179 @@ footer{
         <p class="controls-hint" id="controls-hint">O texto você digita direto em cima da imagem.</p>
 
         <div class="panel" id="panel-texto1">
-          <div class="field" style="grid-column:span 2; min-width:240px">
-            <label>Posição do texto</label>
-            <div class="keys" id="poskeys"></div>
-            <label class="custom-toggle">
-              <input type="checkbox" id="pos-custom-toggle">
-              Ajuste fino
-            </label>
-            <div class="custom-fields coords" id="pos-custom-fields" hidden>
-              <label title="X — distância do canto esquerdo">X<input type="number" id="pos-x" min="0" max="95" value="6" step="1"></label>
-              <label title="Y — distância do topo">Y<input type="number" id="pos-y" min="0" max="95" value="6" step="1"></label>
-              <label title="Largura da caixa de texto">L<input type="number" id="pos-w" min="10" max="100" value="55" step="1"></label>
-              <p class="custom-hint" id="pos-custom-hint"></p>
-            </div>
-          </div>
-
           <div class="field">
-            <label>Cor do texto</label>
-            <div class="sws" id="colkeys"></div>
-          </div>
-
-          <div class="field">
-            <label>Alinhamento do texto</label>
-            <div class="segbar" id="alignkeys"></div>
-          </div>
-
-          <div class="field" style="grid-column:span 2; min-width:240px">
-            <label class="custom-toggle" style="margin-top:0">
-              <input type="checkbox" id="fundo-toggle">
-              Fundo atrás do texto
-            </label>
-            <div class="custom-fields" id="fundo-fields" hidden style="grid-template-columns:1fr">
-              <div class="sws" id="fundocolkeys"></div>
-              <div class="opacity-row">
-                <span class="opacity-label">Opacidade</span>
-                <input type="range" id="fundo-opacidade" min="10" max="100" step="5" value="70" class="size-range">
-                <span id="fundo-opacidade-val" class="size-val"></span>
+            <button type="button" class="field-trigger">Posição do texto</button>
+            <div class="field-pop" hidden>
+              <div class="keys" id="poskeys"></div>
+              <label class="custom-toggle">
+                <input type="checkbox" id="pos-custom-toggle">
+                Ajuste fino
+              </label>
+              <div class="custom-fields coords" id="pos-custom-fields" hidden>
+                <label title="X — distância do canto esquerdo">X<input type="number" id="pos-x" min="0" max="95" value="6" step="1"></label>
+                <label title="Y — distância do topo">Y<input type="number" id="pos-y" min="0" max="95" value="6" step="1"></label>
+                <label title="Largura da caixa de texto">L<input type="number" id="pos-w" min="10" max="100" value="55" step="1"></label>
+                <p class="custom-hint" id="pos-custom-hint"></p>
               </div>
-              <p class="custom-hint" style="margin:0">Liga um fundo colorido no lugar do escurecimento automático de contraste.</p>
             </div>
           </div>
 
           <div class="field">
-            <label for="fontsize-1">Tamanho do texto</label>
-            <div class="fontsize-input">
-              <input type="number" id="fontsize-1" min="10" max="500" step="1" value="78">
-              <span class="unit">px</span>
+            <button type="button" class="field-trigger">Cor do texto</button>
+            <div class="field-pop" hidden>
+              <div class="sws" id="colkeys"></div>
             </div>
-            <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
+          </div>
+
+          <div class="field">
+            <button type="button" class="field-trigger">Alinhamento do texto</button>
+            <div class="field-pop" hidden>
+              <div class="segbar" id="alignkeys"></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <button type="button" class="field-trigger">Fundo atrás do texto</button>
+            <div class="field-pop" hidden>
+              <label class="custom-toggle" style="margin-top:0">
+                <input type="checkbox" id="fundo-toggle">
+                Ativar fundo
+              </label>
+              <div class="custom-fields" id="fundo-fields" hidden style="grid-template-columns:1fr">
+                <div class="sws" id="fundocolkeys"></div>
+                <div class="opacity-row">
+                  <span class="opacity-label">Opacidade</span>
+                  <input type="range" id="fundo-opacidade" min="10" max="100" step="5" value="70" class="size-range">
+                  <span id="fundo-opacidade-val" class="size-val"></span>
+                </div>
+                <p class="custom-hint" style="margin:0">Liga um fundo colorido no lugar do escurecimento automático de contraste.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <button type="button" class="field-trigger">Tamanho do texto</button>
+            <div class="field-pop" hidden>
+              <div class="fontsize-input">
+                <input type="number" id="fontsize-1" min="10" max="500" step="1" value="78">
+                <span class="unit">px</span>
+              </div>
+              <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
+            </div>
           </div>
         </div>
 
         <div class="panel" id="panel-texto2" hidden>
-          <div class="field" style="grid-column:span 2; min-width:240px">
-            <label>Posição da segunda caixa</label>
-            <div class="keys" id="poskeys2"></div>
-            <label class="custom-toggle">
-              <input type="checkbox" id="pos2-custom-toggle">
-              Ajuste fino
-            </label>
-            <div class="custom-fields coords" id="pos2-custom-fields" hidden>
-              <label title="X — distância do canto esquerdo">X<input type="number" id="pos2-x" min="0" max="95" value="6" step="1"></label>
-              <label title="Y — distância do topo">Y<input type="number" id="pos2-y" min="0" max="95" value="6" step="1"></label>
-              <label title="Largura da caixa de texto">L<input type="number" id="pos2-w" min="10" max="100" value="55" step="1"></label>
-              <p class="custom-hint" id="pos2-custom-hint"></p>
-            </div>
-          </div>
-
           <div class="field">
-            <label>Cor da segunda caixa</label>
-            <div class="sws" id="colkeys2"></div>
-          </div>
-
-          <div class="field">
-            <label>Alinhamento da segunda caixa</label>
-            <div class="segbar" id="alignkeys2"></div>
-          </div>
-
-          <div class="field" style="grid-column:span 2; min-width:240px">
-            <label class="custom-toggle" style="margin-top:0">
-              <input type="checkbox" id="fundo2-toggle">
-              Fundo atrás do texto
-            </label>
-            <div class="custom-fields" id="fundo2-fields" hidden style="grid-template-columns:1fr">
-              <div class="sws" id="fundocolkeys2"></div>
-              <div class="opacity-row">
-                <span class="opacity-label">Opacidade</span>
-                <input type="range" id="fundo2-opacidade" min="10" max="100" step="5" value="70" class="size-range">
-                <span id="fundo2-opacidade-val" class="size-val"></span>
+            <button type="button" class="field-trigger">Posição da segunda caixa</button>
+            <div class="field-pop" hidden>
+              <div class="keys" id="poskeys2"></div>
+              <label class="custom-toggle">
+                <input type="checkbox" id="pos2-custom-toggle">
+                Ajuste fino
+              </label>
+              <div class="custom-fields coords" id="pos2-custom-fields" hidden>
+                <label title="X — distância do canto esquerdo">X<input type="number" id="pos2-x" min="0" max="95" value="6" step="1"></label>
+                <label title="Y — distância do topo">Y<input type="number" id="pos2-y" min="0" max="95" value="6" step="1"></label>
+                <label title="Largura da caixa de texto">L<input type="number" id="pos2-w" min="10" max="100" value="55" step="1"></label>
+                <p class="custom-hint" id="pos2-custom-hint"></p>
               </div>
-              <p class="custom-hint" style="margin:0">Liga um fundo colorido no lugar do escurecimento automático de contraste.</p>
             </div>
           </div>
 
           <div class="field">
-            <label for="fontsize-2">Tamanho do texto</label>
-            <div class="fontsize-input">
-              <input type="number" id="fontsize-2" min="10" max="500" step="1" value="78">
-              <span class="unit">px</span>
+            <button type="button" class="field-trigger">Cor da segunda caixa</button>
+            <div class="field-pop" hidden>
+              <div class="sws" id="colkeys2"></div>
             </div>
-            <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
+          </div>
+
+          <div class="field">
+            <button type="button" class="field-trigger">Alinhamento da segunda caixa</button>
+            <div class="field-pop" hidden>
+              <div class="segbar" id="alignkeys2"></div>
+            </div>
+          </div>
+
+          <div class="field">
+            <button type="button" class="field-trigger">Fundo atrás do texto</button>
+            <div class="field-pop" hidden>
+              <label class="custom-toggle" style="margin-top:0">
+                <input type="checkbox" id="fundo2-toggle">
+                Ativar fundo
+              </label>
+              <div class="custom-fields" id="fundo2-fields" hidden style="grid-template-columns:1fr">
+                <div class="sws" id="fundocolkeys2"></div>
+                <div class="opacity-row">
+                  <span class="opacity-label">Opacidade</span>
+                  <input type="range" id="fundo2-opacidade" min="10" max="100" step="5" value="70" class="size-range">
+                  <span id="fundo2-opacidade-val" class="size-val"></span>
+                </div>
+                <p class="custom-hint" style="margin:0">Liga um fundo colorido no lugar do escurecimento automático de contraste.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <button type="button" class="field-trigger">Tamanho do texto</button>
+            <div class="field-pop" hidden>
+              <div class="fontsize-input">
+                <input type="number" id="fontsize-2" min="10" max="500" step="1" value="78">
+                <span class="unit">px</span>
+              </div>
+              <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
+            </div>
           </div>
         </div>
 
         <div class="panel" id="panel-logo" hidden>
           <div class="field">
-            <label>Variante da logo</label>
-            <select id="logo-variante-select" class="formato-select" title="Variante da logo" style="width:100%"></select>
+            <button type="button" class="field-trigger">Variante da logo</button>
+            <div class="field-pop" hidden>
+              <select id="logo-variante-select" class="formato-select" title="Variante da logo" style="width:100%"></select>
+            </div>
           </div>
 
           <div class="field" id="field-logocor">
-            <label>Cor da logo</label>
-            <div class="sws" id="logocolkeys"></div>
-            <p class="custom-hint" id="logocor-nota" hidden style="margin:10px 0 0"></p>
+            <button type="button" class="field-trigger">Cor da logo</button>
+            <div class="field-pop" hidden>
+              <div class="sws" id="logocolkeys"></div>
+              <p class="custom-hint" id="logocor-nota" hidden style="margin:10px 0 0"></p>
+            </div>
           </div>
 
-          <div class="field" style="grid-column:span 2; min-width:240px">
-            <label class="custom-toggle" style="margin-top:0">
-              <input type="checkbox" id="logo-fundo-toggle">
-              Fundo atrás da logo
-            </label>
-            <div class="custom-fields" id="logo-fundo-fields" hidden style="grid-template-columns:1fr">
-              <div class="sws" id="logofundocolkeys"></div>
-              <div class="opacity-row">
-                <span class="opacity-label">Opacidade</span>
-                <input type="range" id="logo-fundo-opacidade" min="10" max="100" step="5" value="70" class="size-range">
-                <span id="logo-fundo-opacidade-val" class="size-val"></span>
+          <div class="field">
+            <button type="button" class="field-trigger">Fundo atrás da logo</button>
+            <div class="field-pop" hidden>
+              <label class="custom-toggle" style="margin-top:0">
+                <input type="checkbox" id="logo-fundo-toggle">
+                Ativar fundo
+              </label>
+              <div class="custom-fields" id="logo-fundo-fields" hidden style="grid-template-columns:1fr">
+                <div class="sws" id="logofundocolkeys"></div>
+                <div class="opacity-row">
+                  <span class="opacity-label">Opacidade</span>
+                  <input type="range" id="logo-fundo-opacidade" min="10" max="100" step="5" value="70" class="size-range">
+                  <span id="logo-fundo-opacidade-val" class="size-val"></span>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="field" style="grid-column:span 2; min-width:240px">
-            <label>Posição da logo</label>
-            <div class="keys" id="logokeys"></div>
-            <label class="custom-toggle">
-              <input type="checkbox" id="logo-custom-toggle">
-              Ajuste fino
-            </label>
-            <div class="custom-fields coords" id="logo-custom-fields" hidden>
-              <label title="X — distância do canto esquerdo">X<input type="number" id="logo-x" min="0" max="95" value="6" step="1"></label>
-              <label title="Y — distância do topo">Y<input type="number" id="logo-y" min="0" max="95" value="6" step="1"></label>
-              <label title="Largura da logo">L<input type="number" id="logo-w" min="5" max="80" value="28" step="1"></label>
-              <p class="custom-hint" id="logo-custom-hint"></p>
+          <div class="field">
+            <button type="button" class="field-trigger">Posição da logo</button>
+            <div class="field-pop" hidden>
+              <div class="keys" id="logokeys"></div>
+              <label class="custom-toggle">
+                <input type="checkbox" id="logo-custom-toggle">
+                Ajuste fino
+              </label>
+              <div class="custom-fields coords" id="logo-custom-fields" hidden>
+                <label title="X — distância do canto esquerdo">X<input type="number" id="logo-x" min="0" max="95" value="6" step="1"></label>
+                <label title="Y — distância do topo">Y<input type="number" id="logo-y" min="0" max="95" value="6" step="1"></label>
+                <label title="Largura da logo">L<input type="number" id="logo-w" min="5" max="80" value="28" step="1"></label>
+                <p class="custom-hint" id="logo-custom-hint"></p>
+              </div>
             </div>
           </div>
         </div>
@@ -1315,6 +1363,7 @@ function renderItemList(){
     b.addEventListener('click', () => {
       if (id === 'texto2' && !sel.extra.ativo) sel.extra.ativo = true;
       selecionado = id;
+      if (typeof fecharPop === 'function') fecharPop();
       render();
     });
     return b;
@@ -2043,6 +2092,50 @@ document.addEventListener('keydown', e => {
     desfazer();
   }
 });
+
+// ---- popovers das ferramentas (Posicao, Cor, Alinhamento, Fundo, Tamanho...) ----
+// so um aberto por vez; fixed (nao absolute) pra escapar do overflow:hidden do
+// .tool -- ver comentario da .field-pop no CSS.
+let popAberto = null;
+function fecharPop(){
+  if (!popAberto) return;
+  popAberto.pop.hidden = true;
+  popAberto.trigger.setAttribute('aria-expanded', 'false');
+  popAberto = null;
+}
+function abrirPop(trigger, pop){
+  if (popAberto && popAberto.pop === pop) { fecharPop(); return; }
+  fecharPop();
+  pop.hidden = false;
+  const r = trigger.getBoundingClientRect();
+  const popW = pop.offsetWidth || 260;
+  let left = Math.max(12, Math.min(r.left, window.innerWidth - popW - 12));
+  let top = r.bottom + 8;
+  const popH = pop.offsetHeight || 200;
+  if (top + popH > window.innerHeight - 12) top = Math.max(12, r.top - popH - 8);
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  trigger.setAttribute('aria-expanded', 'true');
+  popAberto = { trigger, pop };
+}
+document.querySelectorAll('.field').forEach(campo => {
+  const trigger = campo.querySelector(':scope > .field-trigger');
+  const pop = campo.querySelector(':scope > .field-pop');
+  if (!trigger || !pop) return;
+  trigger.addEventListener('click', e => { e.stopPropagation(); abrirPop(trigger, pop); });
+});
+document.addEventListener('click', e => {
+  // usa composedPath() (caminho congelado no momento do clique), nao e.target --
+  // um clique numa cor/swatch dentro do popover reconstroi aquele DOM na hora
+  // (buildColorSwatches faz host.innerHTML='' a cada render()), entao e.target
+  // some da arvore antes deste listener rodar e "pop.contains(e.target)" falha
+  // achando que o clique foi fora, fechando o popover errado.
+  const caminho = e.composedPath();
+  if (popAberto && !caminho.includes(popAberto.pop) && !caminho.includes(popAberto.trigger)) fecharPop();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharPop(); });
+window.addEventListener('resize', fecharPop);
+window.addEventListener('scroll', fecharPop, true);
 
 buildPosGrid(); buildColTable(); buildFormatoSelect(); buildLogoVarianteSelect();
 
