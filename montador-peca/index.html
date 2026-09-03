@@ -1822,6 +1822,13 @@ function render(){
 
   const alinhamentoTexto = ALIGN.find(a => a.a === sel.align).k;
   const corTexto = sel.col.custom ? 'personalizada ' + sel.col.hex : sel.col.k;
+  // FIX 2026-09-03: fontSizePct nunca saia no comentario -- o backend (Cloudinary e
+  // Python) recalculava o tamanho da fonte sozinho a partir so da largura da caixa e
+  // do texto, ignorando o valor que a pessoa ajustou arrastando o canto no preview.
+  // Resultado saia com tamanho (e por tabela posicao, ja que a logo referencia o
+  // texto em alguns fluxos) diferente do que foi visto aqui. Envia em px sobre a
+  // largura de REFERENCIA real (refW), a mesma conta ja usada no campo fontsize-1.
+  const tamanhoFontePx = Math.round(sel.ratio.refW * sel.fontSizePct / 100);
 
   let saida =
     '## Texto da imagem\n' +
@@ -1829,6 +1836,7 @@ function render(){
     'Posicao: [' + posicaoTexto + ']\n' +
     'Cor: [' + corTexto + ']\n' +
     'Alinhamento: [' + alinhamentoTexto + ']\n' +
+    'Tamanho da fonte: [' + tamanhoFontePx + 'px]\n' +
     'Logo: [' + posicaoLogo + ']\n' +
     'Variante da logo: [' + sel.logoVariante.k + ']\n' +
     'Cor do logo: [' + (sel.logoCor.custom ? 'personalizada ' + sel.logoCor.hex : sel.logoCor.k) + ']\n' +
@@ -1854,11 +1862,13 @@ function render(){
       : sel.extra.pos.k;
     const alinhamentoTexto2 = ALIGN.find(a => a.a === sel.extra.align).k;
     const corTexto2 = sel.extra.col.custom ? 'personalizada ' + sel.extra.col.hex : sel.extra.col.k;
+    const tamanhoFontePx2 = Math.round(sel.ratio.refW * sel.extra.fontSizePct / 100);
     saida += '\n' +
       'Texto 2: ' + sel.extra.texto.replace(/\n/g, ' / ') + '\n' +
       'Posicao 2: [' + posicaoTexto2 + ']\n' +
       'Cor 2: [' + corTexto2 + ']\n' +
       'Alinhamento 2: [' + alinhamentoTexto2 + ']\n' +
+      'Tamanho da fonte 2: [' + tamanhoFontePx2 + 'px]\n' +
       'Fundo do texto 2: [' + (sel.extra.fundo.ativo ? 'ativo' : 'inativo') + ']';
     if (sel.extra.fundo.ativo) {
       const corFundoTexto2 = sel.extra.fundo.col.custom ? 'personalizada ' + sel.extra.fundo.col.hex : sel.extra.fundo.col.k;
