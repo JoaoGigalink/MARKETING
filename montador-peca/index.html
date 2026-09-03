@@ -822,13 +822,19 @@ const COL = [
   {k:'lima',        hex:'#E0E721', use:'Destaque de uma ou duas palavras. Evite frase inteira.'},
   {k:'ink',         hex:'#2B3440', use:'Quase-preto, sobre área muito clara.'}
 ];
-// Variantes oficiais de logo -- hoje so existe a mascara em uso (compositor/assets/
-// logo.png, colorida em runtime pela cor escolhida). Estrutura pronta pra quando as
-// outras variantes do Marketing forem cadastradas: e so acrescentar aqui e no
-// backend (LOGOS em montador.py / node do Cloudinary), nada mais muda.
+// Variantes oficiais de logo. 'colorido:true' = a arte tem cores proprias (gradiente
+// da marca) e e composta como esta, ignorando o seletor de cor; sem a flag, o PNG e
+// tratado como MASCARA de silhueta e pintado com a cor escolhida (branco/navy/lima/ink).
+// Ao acrescentar uma variante aqui, acrescente a MESMA chave em LOGOS no
+// compositor/montador.py e ponha o arquivo em compositor/assets/logos/ -- senao o site
+// oferece uma opcao que a peca final nao honra.
 const LOGOS = [
-  {k:'gigalink oficial', nome:'Gigalink Oficial', src:'logos/gigalink-oficial.png', w:2400, h:422},
-  {k:'gigasafe vertical', nome:'GigaSafe Vertical', colorido:true, src:'logos/gigasafe-vertical.png', w:1087, h:1226}
+  {k:'gigalink oficial',          nome:'Gigalink Oficial',           src:'logos/gigalink-oficial.png',          w:2400, h:422},
+  {k:'gigasafe horizontal',       nome:'GigaSafe Horizontal',        colorido:true, src:'logos/gigasafe-horizontal.png',       w:1684, h:737},
+  {k:'gigasafe vertical',         nome:'GigaSafe Vertical',          colorido:true, src:'logos/gigasafe-vertical.png',         w:1087, h:1226},
+  {k:'gigasafe horizontal mono',  nome:'GigaSafe Horizontal Mono',   src:'logos/gigasafe-horizontal-mono.png',  w:1684, h:736},
+  {k:'gigasafe vertical mono',    nome:'GigaSafe Vertical Mono',     src:'logos/gigasafe-vertical-mono.png',    w:1087, h:1226},
+  {k:'gigasafe horizontal branca',nome:'GigaSafe Horizontal Branca', src:'logos/gigasafe-horizontal-branca.png',w:401,  h:121}
 ];
 // Formatos do catalogo de formatos da automacao (planilha de referencia) -- os
 // marcados como categoria "imagem" na planilha, mais os 3 de LED (categoria "fisico"
