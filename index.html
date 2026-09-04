@@ -77,7 +77,7 @@
   100% { transform: scaleX(1);   border-radius: 50%; }
 }
 
-/* 06 Validar Mockup — vira como uma carta, mostrando a prova visual */
+/* 06 Validar Mockup (imagem crua) — vira como uma carta, mostrando a peça */
 .anim-vira { }
 .flowmap-step a:hover .anim-vira { animation: fm-vira 0.9s ease-in-out; }
 @keyframes fm-vira {
@@ -85,7 +85,7 @@
   100% { transform: perspective(200px) rotateY(360deg); }
 }
 
-/* 07 Validar Derivações — se multiplica em várias peças */
+/* 07 Texto Imagem — texto e logo se aplicam em cada peça */
 .flowmap-step a:hover .anim-multiplica { animation: fm-multiplica 1.1s ease-in-out; }
 @keyframes fm-multiplica {
   0%, 100% {
@@ -121,7 +121,6 @@
     <nav class="top-nav">
       <a href="index.html" class="current">O guia</a>
       <a href="duvidas.html">Dúvidas comuns</a>
-      <a href="montador-peca/">Montador de Peça</a>
     </nav>
   </div>
 </div>
@@ -166,16 +165,16 @@
       </div>
       <div class="flowmap-connector"></div>
       <div class="flowmap-step">
-        <a href="#mockup">
+        <a href="#pecas">
           <span class="flowmap-node anim-vira" style="--fcolor:#0091ff"></span>
           <span class="flowmap-label">Validar<br>Mockup</span>
         </a>
       </div>
       <div class="flowmap-connector"></div>
       <div class="flowmap-step">
-        <a href="#pecas">
+        <a href="#texto-logo">
           <span class="flowmap-node anim-multiplica" style="--fcolor:#d33d44"></span>
-          <span class="flowmap-label">Validar<br>Derivações</span>
+          <span class="flowmap-label">Texto<br>Imagem</span>
         </a>
       </div>
       <div class="flowmap-connector"></div>
@@ -199,8 +198,8 @@
         <li><a href="#conceito"><span class="n">02</span> Conceito</a></li>
         <li><a href="#estrutura"><span class="n">03</span> Estrutura</a></li>
         <li><a href="#copy"><span class="n">04</span> Textos (copy)</a></li>
-        <li><a href="#mockup"><span class="n">05</span> Mockup</a></li>
-        <li><a href="#pecas"><span class="n">06</span> Imagens e áudios</a></li>
+        <li><a href="#pecas"><span class="n">05</span> Imagens e áudios crus</a></li>
+        <li><a href="#texto-logo"><span class="n">06</span> Texto e logo</a></li>
         <li><a href="#publicado"><span class="n">07</span> Publicado</a></li>
         <li><a href="#chuleta"><span class="n">·</span> Cola rápida</a></li>
       </ol>
@@ -282,53 +281,20 @@
       </div>
     </div>
 
-    <div class="stage" id="mockup" data-observe>
+    <div class="stage action" id="pecas" data-observe>
       <div class="dot">05</div>
-      <h2>Revisar o mockup</h2>
+      <h2>Revisar as imagens e áudios crus</h2>
       <div class="status-pill">a task vai aparecer em: <span class="chip" style="--dot-color:#0091ff"><i class="status-dot"></i>Validar Mockup</span></div>
       <div class="card">
         <div class="where-tag cu">🏷️ responda direto no ClickUp</div>
-        <p>Antes de gerar todas as imagens finais, a automação gera <strong>uma imagem de prova de conceito</strong> — o mockup — e anexa ela direto na task, com um comentário assim:</p>
-        <div class="type-box-wrap">
-          <div class="type-box" id="exemplo-anuncio-mockup">## mockup: prova de conceito visual
-
-Proxima acao: para aprovar, adicione a tag `aprovado` e comente `APROVADO [mockup]`.
-Para pedir ajuste, adicione a tag `reprovado` e comente `REPROVADO [mockup]`: &lt;descreva o que precisa mudar&gt;</div>
-        </div>
-        <p>Serve pra você confirmar o estilo visual antes de gastar tempo gerando o resto. Mesmo mecanismo das peças finais — só olhar a imagem anexada e decidir.</p>
-        <div class="twocol">
-          <div class="choice good">
-            <div class="head"><span class="tag-pill aprovado">aprovado</span>Estilo aprovado</div>
-            <div class="type-box-wrap">
-              <div class="type-box" id="exemplo-aprovado-mockup">APROVADO [mockup]</div>
-              <button class="copy-btn" data-copy-target="#exemplo-aprovado-mockup" title="Copiar" aria-label="Copiar texto de aprovação">⧉</button>
-            </div>
-          </div>
-          <div class="choice bad">
-            <div class="head"><span class="tag-pill reprovado">reprovado</span>Precisa de ajuste</div>
-            <div class="type-box-wrap">
-              <div class="type-box" id="exemplo-reprovado-mockup">REPROVADO [mockup]: <span class="ph">troca o fundo pra azul escuro</span></div>
-              <button class="copy-btn" data-copy-target="#exemplo-reprovado-mockup" title="Copiar" aria-label="Copiar texto de reprovação">⧉</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="stage action" id="pecas" data-observe>
-      <div class="dot">06</div>
-      <h2>Revisar as imagens e áudios finais</h2>
-      <div class="status-pill">a task vai aparecer em: <span class="chip" style="--dot-color:#d33d44"><i class="status-dot"></i>Validar Derivações</span></div>
-      <div class="card">
-        <div class="where-tag cu">🏷️ aqui muda — responda direto no ClickUp</div>
-        <p>Essa é a única etapa que <strong>não</strong> usa o Google Doc. Cada imagem ou áudio gerado é anexado direto na task, com um comentário assim:</p>
+        <p>Não existe mais um mockup separado — a primeira imagem que a automação gera <strong>já é a peça real</strong>, sem texto ou logo por cima ainda. Cada imagem ou áudio gerado é anexado direto na task, com um comentário assim:</p>
         <div class="type-box-wrap">
           <div class="type-box" id="exemplo-anuncio">## gestor_ti_confiante: post estatico (1080x1080)
 
 Proxima acao: para aprovar, adicione a tag `aprovado` e comente `APROVADO [gestor_ti_confiante]`.
 Para pedir ajuste, adicione a tag `reprovado` e comente `REPROVADO [gestor_ti_confiante]`: &lt;descreva o que precisa mudar&gt;</div>
         </div>
-        <p>O texto entre <code>[ ]</code> muda pra cada peça — <strong>copie exatamente o que está escrito ali</strong>, letra por letra, não invente um nome novo.</p>
+        <p>O texto entre <code>[ ]</code> muda pra cada peça — <strong>copie exatamente o que está escrito ali</strong>, letra por letra, não invente um nome novo (não é o nome do arquivo anexado — é só o identificador entre colchetes do comentário).</p>
         <ol class="step-list">
           <li>Olhe a imagem/áudio anexado no comentário.</li>
           <li>Decida: aprova ou pede ajuste.</li>
@@ -352,6 +318,36 @@ Para pedir ajuste, adicione a tag `reprovado` e comente `REPROVADO [gestor_ti_co
           </div>
         </div>
         <p style="margin-top:12px">Se a task tiver <strong>mais de uma peça</strong> (ex. um carrossel com vários slides), repita esse processo pra cada uma — cada peça tem seu próprio identificador e seu próprio comentário de anúncio.</p>
+        <p style="margin-top:12px">Reprovar <strong>não gera uma imagem do zero</strong> — a automação edita a mesma imagem seguindo o que você pediu (mantém composição, paleta e iluminação, muda só o que foi descrito), e sobe uma nova versão do arquivo (o nome ganha <code>_v2</code>, <code>_v3</code>...). Aprovar sempre segue com a <strong>versão mais recente</strong> — se preferir uma versão anterior, veja abaixo.</p>
+        <div class="card" style="margin-top:14px; background:var(--surface-2)">
+          <div class="head" style="font-weight:600; margin-bottom:6px">Quero aprovar uma versão que não é a mais recente</div>
+          <div class="type-box-wrap">
+            <div class="type-box" id="exemplo-aprovado-versao">APROVADO [gestor_ti_confiante] v2</div>
+            <button class="copy-btn" data-copy-target="#exemplo-aprovado-versao" title="Copiar" aria-label="Copiar texto de aprovação com versão">⧉</button>
+          </div>
+          <p style="margin:8px 0 0">Troque <code>v2</code> pelo número da versão que você quer — é o mesmo número do nome do arquivo anexado, tipo <code>esteira_gestor_ti_confiante_v2.jpg</code>. A automação segue com essa versão em vez da mais nova.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage action" id="texto-logo" data-observe>
+      <div class="dot">06</div>
+      <h2>Definir texto e logo (Montador de Peça)</h2>
+      <div class="status-pill">a task vai aparecer em: <span class="chip" style="--dot-color:#d33d44"><i class="status-dot"></i>Texto Imagem</span></div>
+      <div class="card">
+        <div class="where-tag cu">🏷️ aqui muda — responda direto no ClickUp</div>
+        <p>Com a imagem crua aprovada, a automação avisa que chegou a hora de definir o texto e a logo — a imagem em si <strong>não muda mais</strong>, só entra texto+logo por cima. O comentário traz um link do Montador de Peça, aberto já em cima da imagem certa.</p>
+        <ol class="step-list">
+          <li>Abra o link do Montador — a imagem aprovada já carrega no editor.</li>
+          <li>Posicione o texto e a logo arrastando na própria imagem (ou escolhendo uma posição pronta).</li>
+          <li>Copie o comentário que o Montador gera e cole na task, exatamente como está.</li>
+          <li>Se a task tiver mais de uma peça, repita para cada uma — o comentário já vem endereçado à peça certa entre colchetes.</li>
+        </ol>
+        <p style="margin-top:12px">Depois de colado o texto de todas as peças, adicione a tag <span class="tag-pill aprovado">aprovado</span> pra confirmar. A automação carimba o texto e a logo e anexa o resultado final na task.</p>
+        <div class="card" style="margin-top:14px; background:var(--surface-2)">
+          <div class="head" style="font-weight:600; margin-bottom:6px">A peça final saiu errada — o que fazer?</div>
+          <p>Na conferência final (depois que a peça é montada), reprovar <strong>não regenera nada automaticamente</strong> — a imagem e o texto já foram definidos. Reabra o Montador da mesma peça, ajuste e cole um novo comentário de texto (mesmo formato de antes) — a automação recompõe com os dados novos.</p>
+        </div>
       </div>
     </div>
 
@@ -379,10 +375,16 @@ Para pedir ajuste, adicione a tag `reprovado` e comente `REPROVADO [gestor_ti_co
               <td>trocar por <code>REPROVADO</code> + motivo</td>
             </tr>
             <tr>
-              <td>Mockup / Imagens e áudios finais</td>
+              <td>Imagens e áudios crus</td>
               <td>Comentário na task do ClickUp</td>
-              <td><span class="tag-pill aprovado">aprovado</span> + <code>APROVADO [id]</code></td>
+              <td><span class="tag-pill aprovado">aprovado</span> + <code>APROVADO [id]</code> (ou <code>APROVADO [id] v2</code> pra escolher a versão)</td>
               <td><span class="tag-pill reprovado">reprovado</span> + <code>REPROVADO [id]: motivo</code></td>
+            </tr>
+            <tr>
+              <td>Texto e logo</td>
+              <td>Comentário na task, colado do Montador de Peça</td>
+              <td>colar o texto de todas as peças + tag <span class="tag-pill aprovado">aprovado</span></td>
+              <td>reabrir o Montador e colar um novo comentário de texto</td>
             </tr>
           </tbody>
         </table>

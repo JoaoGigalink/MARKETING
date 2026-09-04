@@ -30,7 +30,7 @@
     inset: 0;
     background:
       linear-gradient(100deg, rgba(6, 20, 60, 0.88) 0%, rgba(6, 20, 60, 0.72) 45%, rgba(6, 20, 60, 0.42) 100%),
-      url("gigalink-fundo.png") center / cover no-repeat;
+      url("assets/gigalink-fundo.png") center / cover no-repeat;
   }
   .trello-cta-inner {
     position: relative;
@@ -78,7 +78,6 @@
     <nav class="top-nav">
       <a href="index.html">O guia</a>
       <a href="duvidas.html" class="current">Dúvidas comuns</a>
-      <a href="montador-peca/">Montador de Peça</a>
     </nav>
   </div>
 </div>
@@ -108,6 +107,14 @@
       <summary>Aprovei errado. Dá pra desfazer?<span class="arrow">›</span></summary>
       <div class="answer">
         <p>Não tem um botão de "desfazer" — mas você pode comentar <code>REPROVADO [id]: motivo</code> na mesma peça pra pedir uma nova versão, como se estivesse pedindo um ajuste normal.</p>
+        <p>Se o que você queria era voltar pra uma versão que <strong>já existe</strong> (não gerar uma nova), comente <code>APROVADO [id] v2</code> — troque <code>v2</code> pelo número da versão que quer, o mesmo número do nome do arquivo anexado.</p>
+      </div>
+    </details>
+
+    <details class="faq">
+      <summary>Aprovei sem indicar versão e ele usou a errada. Por quê?<span class="arrow">›</span></summary>
+      <div class="answer">
+        <p>Sem indicar um número, <code>APROVADO [id]</code> sempre segue com a versão <strong>mais recente</strong> do arquivo — mesmo que você estivesse olhando uma versão anterior na hora de aprovar. Pra escolher outra, escreva o número dela: <code>APROVADO [id] v2</code> (o número é o mesmo do nome do arquivo, tipo <code>esteira_id_v2.jpg</code>).</p>
       </div>
     </details>
   </div>
@@ -125,7 +132,7 @@
     <details class="faq">
       <summary>Onde fica a linha "Status:" que eu preciso editar no Doc?<span class="arrow">›</span></summary>
       <div class="answer">
-        <p>Sempre no final da seção correspondente (<code>## CONCEITO</code>, <code>## ESTRUTURA</code>, <code>## COPY: ...</code> ou <code>## MOCKUP</code>). Use Ctrl+F e busque por <code>Status:</code> pra achar rápido — se tiver mais de uma seção, o Doc pode ter mais de uma linha dessas.</p>
+        <p>Sempre no final da seção correspondente (<code>## CONCEITO</code>, <code>## ESTRUTURA</code> ou <code>## COPY: ...</code>). Use Ctrl+F e busque por <code>Status:</code> pra achar rápido — se tiver mais de uma seção, o Doc pode ter mais de uma linha dessas.</p>
       </div>
     </details>
 
