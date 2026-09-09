@@ -1,0 +1,61 @@
+{
+  "_leia_me": "FONTE DA VERDADE das variantes de logo. Editar SO este arquivo: o Montador de Peca (index.html) e o compositor Python (compositor/montador.py) leem daqui, e o parser do n8n valida contra o /health do compositor. Antes disso a lista estava copiada em 3 lugares e divergia (o caso real: 'gigasafe vertical' era ofertado no site e ignorado na peca final).",
+  "_como_adicionar": "1) Ponha o .png (com transparencia) nesta pasta. 2) Acrescente um bloco em 'logos' abaixo. 3) Commit/sync do repo MARKETING (GitHub Pages). Nao precisa rebuild do container: o compositor busca por HTTP e cacheia em disco.",
+  "_campos": {
+    "chave": "nome em minusculas que o revisor escreve em 'Variante da logo: [...]' no ClickUp",
+    "nome": "rotulo exibido no seletor do Montador de Peca",
+    "arquivo": "nome do .png nesta mesma pasta",
+    "colorido": "true = a arte ja tem cores proprias (gradiente/duas cores) e NAO pode ser tingida; false/ausente = mascara de silhueta, o compositor pinta com a cor escolhida pelo revisor",
+    "w / h": "largura e altura reais do .png em pixels -- o preview do Montador usa pra manter a proporcao"
+  },
+  "logos": [
+    {
+      "chave": "gigalink oficial",
+      "nome": "Gigalink Oficial",
+      "arquivo": "gigalink-oficial.png",
+      "colorido": false,
+      "w": 2400,
+      "h": 422
+    },
+    {
+      "chave": "gigasafe horizontal",
+      "nome": "GigaSafe Horizontal",
+      "arquivo": "gigasafe-horizontal.png",
+      "colorido": true,
+      "w": 1684,
+      "h": 737
+    },
+    {
+      "chave": "gigasafe vertical",
+      "nome": "GigaSafe Vertical",
+      "arquivo": "gigasafe-vertical.png",
+      "colorido": true,
+      "w": 1087,
+      "h": 1226
+    },
+    {
+      "chave": "gigasafe horizontal mono",
+      "nome": "GigaSafe Horizontal Mono",
+      "arquivo": "gigasafe-horizontal-mono.png",
+      "colorido": false,
+      "w": 1684,
+      "h": 736
+    },
+    {
+      "chave": "gigasafe vertical mono",
+      "nome": "GigaSafe Vertical Mono",
+      "arquivo": "gigasafe-vertical-mono.png",
+      "colorido": false,
+      "w": 1087,
+      "h": 1226
+    },
+    {
+      "chave": "gigasafe horizontal branca",
+      "nome": "GigaSafe Horizontal Branca",
+      "arquivo": "gigasafe-horizontal-branca.png",
+      "colorido": false,
+      "w": 401,
+      "h": 121
+    }
+  ]
+}

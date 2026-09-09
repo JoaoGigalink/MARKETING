@@ -822,20 +822,47 @@ const COL = [
   {k:'lima',        hex:'#E0E721', use:'Destaque de uma ou duas palavras. Evite frase inteira.'},
   {k:'ink',         hex:'#2B3440', use:'Quase-preto, sobre área muito clara.'}
 ];
-// Variantes oficiais de logo. 'colorido:true' = a arte tem cores proprias (gradiente
-// da marca) e e composta como esta, ignorando o seletor de cor; sem a flag, o PNG e
-// tratado como MASCARA de silhueta e pintado com a cor escolhida (branco/navy/lima/ink).
-// Ao acrescentar uma variante aqui, acrescente a MESMA chave em LOGOS no
-// compositor/montador.py e ponha o arquivo em compositor/assets/logos/ -- senao o site
-// oferece uma opcao que a peca final nao honra.
+// Variantes de logo. 'colorido:true' = a arte tem cores proprias (gradiente da marca) e
+// e composta como esta, ignorando o seletor de cor; sem a flag, o PNG e tratado como
+// MASCARA de silhueta e pintado com a cor escolhida (branco/navy/lima/ink).
+//
+// FIX 2026-09-09: esta lista NAO se edita mais aqui. A fonte da verdade e
+// logos/logos.json, lido tambem pelo compositor Python -- antes a mesma lista vivia
+// copiada em 3 lugares (aqui, no montador.py e no parser do n8n) e divergia, fazendo o
+// site oferecer opcao que a peca final ignorava (caso real: 'gigasafe vertical').
+//
+// PARA ADICIONAR UM LOGO: ponha o .png em logos/, acrescente um bloco em logos.json,
+// sincronize o repo. Aparece aqui e na peca final, sem mexer em codigo.
+//
+// O array e preenchido por carregarLogos() antes do app iniciar; comeca com o Gigalink
+// oficial pra que uma falha de rede ainda deixe o Montador utilizavel.
 const LOGOS = [
-  {k:'gigalink oficial',          nome:'Gigalink Oficial',           src:'logos/gigalink-oficial.png',          w:2400, h:422},
-  {k:'gigasafe horizontal',       nome:'GigaSafe Horizontal',        colorido:true, src:'logos/gigasafe-horizontal.png',       w:1684, h:737},
-  {k:'gigasafe vertical',         nome:'GigaSafe Vertical',          colorido:true, src:'logos/gigasafe-vertical.png',         w:1087, h:1226},
-  {k:'gigasafe horizontal mono',  nome:'GigaSafe Horizontal Mono',   src:'logos/gigasafe-horizontal-mono.png',  w:1684, h:736},
-  {k:'gigasafe vertical mono',    nome:'GigaSafe Vertical Mono',     src:'logos/gigasafe-vertical-mono.png',    w:1087, h:1226},
-  {k:'gigasafe horizontal branca',nome:'GigaSafe Horizontal Branca', src:'logos/gigasafe-horizontal-branca.png',w:401,  h:121}
+  {k:'gigalink oficial', nome:'Gigalink Oficial', src:'logos/gigalink-oficial.png', w:2400, h:422}
 ];
+
+async function carregarLogos() {
+  try {
+    const r = await fetch('logos/logos.json', {cache:'no-store'});
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const itens = (await r.json()).logos || [];
+    if (!itens.length) throw new Error('manifesto sem logos');
+    LOGOS.length = 0;
+    itens.forEach(l => LOGOS.push({
+      k: l.chave, nome: l.nome || l.chave, colorido: !!l.colorido,
+      src: 'logos/' + l.arquivo, w: l.w, h: l.h
+    }));
+  } catch (e) {
+    // Falha visivel, nunca silenciosa: sem isso o revisor escolheria entre 1 opcao sem
+    // entender por que as outras sumiram.
+    console.error('[montador] nao consegui ler logos/logos.json:', e);
+    const aviso = document.createElement('div');
+    aviso.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;padding:8px 12px;'
+      + 'background:#8A1C1C;color:#fff;font:600 13px system-ui,sans-serif;text-align:center';
+    aviso.textContent = 'Nao foi possivel carregar a lista de logos (logos/logos.json). '
+      + 'So o Gigalink Oficial esta disponivel nesta sessao.';
+    document.addEventListener('DOMContentLoaded', () => document.body.appendChild(aviso));
+  }
+}
 // Formatos do catalogo de formatos da automacao (planilha de referencia) -- os
 // marcados como categoria "imagem" na planilha, mais os 3 de LED (categoria "fisico"
 // na planilha, mas sao imagem de verdade pra fins deste montador). 'reels' aparece
@@ -1148,7 +1175,12 @@ function buildLogoVarianteSelect(){
     opt.textContent = o.nome;
     host.appendChild(opt);
   });
-  host.addEventListener('change', () => { sel.logoVariante = LOGOS[Number(host.value)]; render(); });
+  // O listener e registrado UMA vez: esta funcao roda de novo quando o catalogo remoto
+  // chega (ver carregarLogos), e sem a guarda cada rebuild empilharia mais um handler.
+  if (!host.dataset.ligado) {
+    host.dataset.ligado = '1';
+    host.addEventListener('change', () => { sel.logoVariante = LOGOS[Number(host.value)]; render(); });
+  }
 }
 
 // Arrastar a caixa direto na previa, com guia de centralizacao (igual Canva).
@@ -2196,6 +2228,21 @@ if (imgParam) {
   img.src = 'data:image/jpeg;base64,' + IMG_B64;
 }
 render();
+
+// FIX 2026-09-09: o catalogo de logos vem de logos/logos.json -- a MESMA fonte que o
+// compositor Python le, pra que site e peca final nunca mais divirjam. O fetch e
+// assincrono e 'sel' ja foi montado la em cima com o Gigalink oficial, entao aqui
+// refazemos o que depende da lista: imagens das miniaturas, seletor, e a selecao atual
+// (que pode ter sido restaurada de um estado salvo na URL da task).
+carregarLogos().then(() => {
+  const desejada = sel.logoVariante && sel.logoVariante.k;
+  LOGOS.forEach(l => { l.img = new Image(); l.img.onload = () => render(); l.img.src = l.src; });
+  buildLogoVarianteSelect();
+  sel.logoVariante = LOGOS.find(l => l.k === desejada) || LOGOS[0];
+  const host = $('logo-variante-select');
+  if (host) host.value = String(Math.max(0, LOGOS.indexOf(sel.logoVariante)));
+  render();
+});
 </script>
 </body>
 </html>
