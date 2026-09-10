@@ -2275,16 +2275,30 @@ document.addEventListener('keydown', e => {
 
 // FIX 2026-09-10: Delete/Backspace remove o item selecionado (Texto 2 ou Logo) --
 // mesmo efeito do botao "x" na barra de itens, so mais rapido. Texto 1 NUNCA e
-// removido por aqui (e obrigatorio, sem botao de remover tambem). Guarda contra
-// qualquer campo editavel focado (contenteditable da caixa de texto, inputs
-// numericos, etc.) pra nao interceptar a tecla de apagar letra/digito de dentro
-// de um campo -- mesmo padrao de guarda do Ctrl+Z acima.
+// removido por aqui (e obrigatorio, sem botao de remover tambem).
+//
+// FIX 2026-09-10b: a guarda original bloqueava sempre que QUALQUER campo editavel
+// da pagina estivesse com foco -- inclusive o Texto 1 (#tbox), que fica com foco de
+// edicao mesmo depois de clicar no Logo ou no Texto 2 pra "selecionar" (mousedown
+// neles nao tira o foco de um contenteditable que ja estava focado quando o item
+// selecionado por padrao ao abrir a pagina e o Texto 1). Resultado: o Delete nunca
+// removia nada, so quando por acaso nenhum campo tinha foco ainda.
+//
+// A guarda certa nao e "algum campo tem foco" -- e "o foco esta num campo que faz
+// sentido apagar caractere em vez de remover o item". #tbox (Texto 1) preso com
+// foco nunca bloqueia mais (ele nunca e removido por aqui de qualquer forma). Os
+// demais campos (inputs numericos dos paineis, #tbox2) so bloqueiam quando o item
+// que teria esse campo aberto e o mesmo que esta selecionado -- assim apagar um
+// digito no campo de tamanho de fonte do Texto 2, por exemplo, continua funcionando
+// normalmente em vez de deletar a caixa inteira.
 document.addEventListener('keydown', e => {
   if (e.key !== 'Delete' && e.key !== 'Backspace') return;
   const foco = document.activeElement;
-  const editandoCampo = foco && (foco.isContentEditable
-    || foco.tagName === 'INPUT' || foco.tagName === 'TEXTAREA');
-  if (editandoCampo) return;
+  const editandoCampoDoItemSelecionado = foco && foco !== $('tbox') && (
+    (selecionado === 'texto2' && (foco === $('tbox2') || foco === $('fontsize-2'))) ||
+    (selecionado === 'logo' && foco.tagName === 'INPUT' && $('panel-logo').contains(foco))
+  );
+  if (editandoCampoDoItemSelecionado) return;
   if (selecionado === 'texto2' && sel.extra.ativo) {
     e.preventDefault();
     sel.extra.ativo = false;
