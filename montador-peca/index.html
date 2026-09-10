@@ -1164,7 +1164,35 @@ function buildFormatoSelect(){
     opt.textContent = o.nome + ' (' + o.refW + '×' + o.refH + ')';
     host.appendChild(opt);
   });
-  host.addEventListener('change', () => { sel.ratio = FORMATOS[Number(host.value)]; render(); });
+  host.addEventListener('change', () => {
+    sel.ratio = FORMATOS[Number(host.value)];
+    trocarImagemExemplo();
+    render();
+  });
+}
+
+// FIX 2026-09-10: imagem de fundo de exemplo por proporção -- so no Montador "cru"
+// (sem ?img= na URL, ou seja, sem uma peça real de task carregada). Trocar o formato
+// no seletor recarrega uma imagem generica (fundo navy + a dimensão escrita) na
+// proporção certa, em vez de deixar a mesma foto de exemplo (ou distorcida) pra
+// qualquer formato. Com ?img= presente, isso NUNCA roda -- a imagem real da task tem
+// prioridade absoluta e nunca é substituída.
+const EXEMPLOS_POR_RATIO = [
+  { r: 1080 / 1920, arquivo: 'exemplos/placeholder-9x16.jpg' },      // stories, reels, fullscreen
+  { r: 576 / 768,   arquivo: 'exemplos/placeholder-led-vertical.jpg' },
+  { r: 1080 / 1350, arquivo: 'exemplos/placeholder-4x5.jpg' },       // carrossel, post estático
+  { r: 1080 / 1080, arquivo: 'exemplos/placeholder-1x1.jpg' },       // dark post
+  { r: 500 / 300,   arquivo: 'exemplos/placeholder-banner-mobile.jpg' },
+  { r: 1344 / 768,  arquivo: 'exemplos/placeholder-led-base.jpg' },
+  { r: 768 / 256,   arquivo: 'exemplos/placeholder-led-horizontal.jpg' },
+  { r: 1920 / 350,  arquivo: 'exemplos/placeholder-banner-desktop.jpg' },
+];
+function trocarImagemExemplo(){
+  if (imgParam) return; // peça real de uma task -- nunca sobrepor
+  const alvo = EXEMPLOS_POR_RATIO.reduce((melhor, o) =>
+    Math.abs(o.r - sel.ratio.r) < Math.abs(melhor.r - sel.ratio.r) ? o : melhor);
+  img.onerror = () => { imgReady = false; render(); };
+  img.src = alvo.arquivo;
 }
 
 function buildLogoVarianteSelect(){
@@ -2196,21 +2224,27 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharPop();
 window.addEventListener('resize', fecharPop);
 window.addEventListener('scroll', fecharPop, true);
 
+// FIX 2026-08-31: se a task no ClickUp veio com o link ja preenchendo '?img=',
+// carrega o mockup aprovado de verdade em vez da foto de exemplo. Imagens sem
+// cabecalho CORS (caso do anexo do ClickUp) ainda desenham normal no canvas --
+// so a leitura de pixel do verificador de contraste fica indisponivel (measure()
+// ja tem fallback pra isso, so esconde o selo).
+//
+// Declarada ANTES de buildFormatoSelect() (que agenda trocarImagemExemplo() num
+// listener de 'change') de proposito -- trocarImagemExemplo() le imgParam, e
+// precisa dele já existente antes que qualquer interação do usuário possa disparar
+// o listener.
+const imgParam = new URLSearchParams(location.search).get('img');
+
 buildPosGrid(); buildColTable(); buildFormatoSelect(); buildLogoVarianteSelect();
 
 // restaura o que estava sendo montado antes do F5 (silencioso: se o estado salvo
 // nao servir mais, simplesmente comeca do padrao)
 try {
   const salvo = localStorage.getItem(CHAVE_LS);
-  if (salvo && aplicarEstado(JSON.parse(salvo))) sincronizarControles();
+  if (salvo && aplicarEstado(JSON.parse(salvo))) { sincronizarControles(); trocarImagemExemplo(); }
 } catch (err) {}
 
-// FIX 2026-08-31: se a task no ClickUp veio com o link ja preenchendo '?img=',
-// carrega o mockup aprovado de verdade em vez da foto de exemplo. Imagens sem
-// cabecalho CORS (caso do anexo do ClickUp) ainda desenham normal no canvas --
-// so a leitura de pixel do verificador de contraste fica indisponivel (measure()
-// ja tem fallback pra isso, so esconde o selo).
-const imgParam = new URLSearchParams(location.search).get('img');
 img.onload = () => { imgReady = true; render(); };
 img.onerror = () => {
   imgReady = false;
@@ -2225,7 +2259,9 @@ if (imgParam) {
   $('foto-note').textContent = 'Imagem do mockup aprovado desta task. O contraste pode não ser verificável (sem CORS no anexo).';
   img.src = imgParam;
 } else {
-  img.src = 'data:image/jpeg;base64,' + IMG_B64;
+  // FIX 2026-09-10: em vez da mesma foto de exemplo pra qualquer proporção, carrega
+  // o placeholder já na proporção do formato selecionado (ver trocarImagemExemplo).
+  trocarImagemExemplo();
 }
 render();
 
