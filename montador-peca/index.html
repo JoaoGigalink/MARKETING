@@ -226,6 +226,16 @@ section{margin-top:60px}
   font-family:var(--mono); font-size:12px; color:var(--fg-dim); pointer-events:none;
 }
 .fontsize-input + .custom-hint{margin-top:8px}
+/* Atalhos Título/Subtítulo/Parágrafo -- preenchem o campo px com um tamanho
+   calibrado (ver PRESETS_FONTE); continua editável depois, não é um seletor travado. */
+.preset-row{display:flex; gap:6px; margin-bottom:9px}
+.preset-btn{
+  font-family:var(--display); font-weight:600; font-size:12px; padding:6px 11px;
+  border:1px solid var(--border); border-radius:7px; background:var(--bg); color:var(--fg);
+  cursor:pointer;
+}
+.preset-btn:hover{border-color:var(--navy); color:var(--navy)}
+.preset-btn.ativo{background:var(--navy); border-color:var(--navy); color:#fff}
 .keys{display:flex; flex-wrap:wrap; gap:7px}
 .key{
   font-family:var(--mono); font-size:12.5px; padding:7px 11px;
@@ -556,11 +566,16 @@ footer{
           <div class="field">
             <button type="button" class="field-trigger">Tamanho do texto</button>
             <div class="field-pop" hidden>
+              <div class="preset-row" data-preset-alvo="1">
+                <button type="button" class="preset-btn" data-preset="titulo">Título</button>
+                <button type="button" class="preset-btn" data-preset="subtitulo">Subtítulo</button>
+                <button type="button" class="preset-btn" data-preset="paragrafo">Parágrafo</button>
+              </div>
               <div class="fontsize-input">
                 <input type="number" id="fontsize-1" min="10" max="500" step="1" value="78">
                 <span class="unit">px</span>
               </div>
-              <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
+              <p class="custom-hint">Título/Subtítulo/Parágrafo preenchem um tamanho calibrado — depois é só ajustar fino aqui se quiser. O valor vai pro comentário e pra peça final.</p>
             </div>
           </div>
         </div>
@@ -619,11 +634,16 @@ footer{
           <div class="field">
             <button type="button" class="field-trigger">Tamanho do texto</button>
             <div class="field-pop" hidden>
+              <div class="preset-row" data-preset-alvo="2">
+                <button type="button" class="preset-btn" data-preset="titulo">Título</button>
+                <button type="button" class="preset-btn" data-preset="subtitulo">Subtítulo</button>
+                <button type="button" class="preset-btn" data-preset="paragrafo">Parágrafo</button>
+              </div>
               <div class="fontsize-input">
                 <input type="number" id="fontsize-2" min="10" max="500" step="1" value="78">
                 <span class="unit">px</span>
               </div>
-              <p class="custom-hint">Ajusta só a prévia por enquanto — a automação ainda gera com o tamanho automático de sempre.</p>
+              <p class="custom-hint">Título/Subtítulo/Parágrafo preenchem um tamanho calibrado — depois é só ajustar fino aqui se quiser. O valor vai pro comentário e pra peça final.</p>
             </div>
           </div>
         </div>
@@ -984,6 +1004,7 @@ function sincronizarControles(){
   $('fundo2-opacidade').value = sel.extra.fundo.opacidadePct;
   $('fontsize-1').value = Math.round(sel.ratio.refW * sel.fontSizePct / 100);
   $('fontsize-2').value = Math.round(sel.ratio.refW * sel.extra.fontSizePct / 100);
+  sincronizarBotoesPreset();
   const i = FORMATOS.indexOf(sel.ratio);
   if (i >= 0) $('formato-select').value = String(i);
   const iLogo = LOGOS.indexOf(sel.logoVariante);
@@ -1193,6 +1214,23 @@ function trocarImagemExemplo(){
     Math.abs(o.r - sel.ratio.r) < Math.abs(melhor.r - sel.ratio.r) ? o : melhor);
   img.onerror = () => { imgReady = false; render(); };
   img.src = alvo.arquivo;
+}
+
+// FIX 2026-09-10: atalhos Título/Subtítulo/Parágrafo -- preenchem fontSizePct com um
+// valor calibrado (título maior, subtítulo médio, parágrafo menor, todos em negrito --
+// a única fonte que o compositor Python usa é bold, não existe peso variável aqui). O
+// campo px continua editável depois: isto é um ponto de partida, não um seletor travado.
+const PRESETS_FONTE = { titulo: 11, subtitulo: 7.5, paragrafo: 5 };
+// Realca o botao cujo preset bate com o fontSizePct atual (tolerancia pequena, pra
+// nao "desmarcar" so por arredondamento de px<->pct ida e volta). Nenhum realce se o
+// valor foi ajustado fino manualmente e nao corresponde a nenhum preset.
+function sincronizarBotoesPreset(){
+  document.querySelectorAll('.preset-row').forEach(row => {
+    const pct = row.dataset.presetAlvo === '1' ? sel.fontSizePct : sel.extra.fontSizePct;
+    row.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.classList.toggle('ativo', Math.abs(PRESETS_FONTE[btn.dataset.preset] - pct) < 0.15);
+    });
+  });
 }
 
 function buildLogoVarianteSelect(){
@@ -2018,6 +2056,25 @@ $('fontsize-2').addEventListener('input', () => {
   const px = Number($('fontsize-2').value) || 78;
   sel.extra.fontSizePct = Math.min(30, Math.max(1, px / sel.ratio.refW * 100));
   render();
+});
+
+// Atalhos Título/Subtítulo/Parágrafo (PRESETS_FONTE e sincronizarBotoesPreset ficam
+// perto do topo, junto de EXEMPLOS_POR_RATIO) -- aqui só o listener de clique.
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const alvo = btn.closest('.preset-row').dataset.presetAlvo;
+    const pct = PRESETS_FONTE[btn.dataset.preset];
+    const px = Math.round(sel.ratio.refW * pct / 100);
+    if (alvo === '1') {
+      sel.fontSizePct = pct;
+      $('fontsize-1').value = px;
+    } else {
+      sel.extra.fontSizePct = pct;
+      $('fontsize-2').value = px;
+    }
+    sincronizarBotoesPreset();
+    render();
+  });
 });
 
 $('logo-fundo-toggle').addEventListener('change', e => {
