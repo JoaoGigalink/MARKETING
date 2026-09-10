@@ -909,6 +909,7 @@ const posPor = k => POS.find(p => p.k === k);
 
 let sel = {pos:posPor('canto superior esquerdo'), col:COL[0], logo:posPor('canto superior direito'),
   ratio:FORMATOS[0], logoVariante:LOGOS[0], align:posPor('canto superior esquerdo').a,
+  logoAtivo:true,
   texto:'Já é seu.\nSó falta ativar.', fontSizePct:7.2,
   custom:{ativo:false, x:6, y:6, w:55},
   customLogo:{ativo:false, x:6, y:6, w:28},
@@ -938,6 +939,7 @@ function serializar(){
   return {
     pos: sel.pos.k, col: colSerializar(sel.col), logo: sel.logo.k, ratio: sel.ratio.k,
     logoVariante: sel.logoVariante.k, logoCor: colSerializar(sel.logoCor), align: sel.align,
+    logoAtivo: sel.logoAtivo,
     texto: sel.texto, fontSizePct: sel.fontSizePct,
     custom: {...sel.custom}, customLogo: {...sel.customLogo},
     logoFundo: { ativo: sel.logoFundo.ativo, col: colSerializar(sel.logoFundo.col),
@@ -972,6 +974,8 @@ function aplicarEstado(e){
       : { ativo: false, col: COL.find(c => c.k === 'navy escuro'), opacidadePct: 70 };
     sel.logoFundo = F_(e.logoFundo);
     sel.fundo = F_(e.fundo);
+    // estados salvos antes desta feature nao tem logoAtivo -- caem no padrao (ativo)
+    sel.logoAtivo = e.logoAtivo === undefined ? true : !!e.logoAtivo;
     sel.pos = pos; sel.col = col; sel.logo = logo; sel.ratio = ratio; sel.align = e.align;
     sel.texto = e.texto; sel.fontSizePct = e.fontSizePct;
     sel.custom = {...e.custom}; sel.customLogo = {...e.customLogo};
@@ -1477,6 +1481,7 @@ function renderItemList(){
     b.setAttribute('aria-pressed', selecionado === id ? 'true' : 'false');
     b.addEventListener('click', () => {
       if (id === 'texto2' && !sel.extra.ativo) sel.extra.ativo = true;
+      if (id === 'logo' && !sel.logoAtivo) sel.logoAtivo = true;
       selecionado = id;
       if (typeof fecharPop === 'function') fecharPop();
       render();
@@ -1499,7 +1504,25 @@ function renderItemList(){
     });
     host.appendChild(rm);
   }
-  host.appendChild(addBtn('logo', 'Logo', LOGO_ICON_SVG, 'Logo'));
+  // FIX 2026-09-10: a peca pode nao ter logo -- desde sempre o parser do n8n e o
+  // compositor Python ja tratam Logo/Variante da logo como opcionais no comentario
+  // (so o Montador nunca oferecia essa opcao). Mesmo padrao do Texto 2: chip muda
+  // pra "Adicionar logo" quando desativado, com botao "x" pra remover quando ativo.
+  host.appendChild(addBtn('logo',
+    sel.logoAtivo ? 'Logo' : 'Adicionar logo',
+    sel.logoAtivo ? LOGO_ICON_SVG : '+',
+    sel.logoAtivo ? 'Logo' : 'Adicionar'));
+  if (sel.logoAtivo) {
+    const rm = document.createElement('button');
+    rm.type = 'button'; rm.className = 'rail-remove'; rm.textContent = '×';
+    rm.title = 'Remover logo'; rm.setAttribute('aria-label', 'Remover logo');
+    rm.addEventListener('click', () => {
+      sel.logoAtivo = false;
+      if (selecionado === 'logo') selecionado = 'texto1';
+      render();
+    });
+    host.appendChild(rm);
+  }
 }
 
 // FIX 2026-09-01: a previa era fixa em 320px, pequena demais pra julgar posicao (o
@@ -1578,13 +1601,16 @@ function desenharPeca(ctx, W, H){
     const ax = c.align === 'center' ? x0 + larguraTexto / 2 : c.align === 'right' ? x0 + larguraTexto : x0;
     r.linhas.forEach((ln, i) => ctx.fillText(ln, ax, marginY + i * r.fonte * AF_ALTURA_LINHA));
   });
-  // logo -- imagem real (nao mais um retangulo com "gigalink" escrito por cima)
-  const l = sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y} : sel.logo;
-  const lw = (sel.customLogo.ativo ? sel.customLogo.w : 28) / 100 * W;
-  const lh = lw * sel.logoVariante.h / sel.logoVariante.w;
-  const lx = l.a === 'right' ? (l.x/100*W + (l.w||55)/100*W - lw) : (l.x/100*W);
-  desenharLogoNoCanvas(ctx, sel.logoVariante, sel.logoCor.hex, Math.max(0, lx), l.y/100*H, lw, lh,
-    sel.logoFundo.ativo ? hexToRgba(sel.logoFundo.col.hex, sel.logoFundo.opacidadePct / 100) : null);
+  // logo -- imagem real (nao mais um retangulo com "gigalink" escrito por cima).
+  // Sem logo (sel.logoAtivo=false), nao desenha nada aqui.
+  if (sel.logoAtivo) {
+    const l = sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y} : sel.logo;
+    const lw = (sel.customLogo.ativo ? sel.customLogo.w : 28) / 100 * W;
+    const lh = lw * sel.logoVariante.h / sel.logoVariante.w;
+    const lx = l.a === 'right' ? (l.x/100*W + (l.w||55)/100*W - lw) : (l.x/100*W);
+    desenharLogoNoCanvas(ctx, sel.logoVariante, sel.logoCor.hex, Math.max(0, lx), l.y/100*H, lw, lh,
+      sel.logoFundo.ativo ? hexToRgba(sel.logoFundo.col.hex, sel.logoFundo.opacidadePct / 100) : null);
+  }
   return { apertado: algumApertado };
 }
 
@@ -1717,6 +1743,9 @@ function render(){
     t.style.boxShadow = 'none';
   }
 
+  // FIX 2026-09-10: sem logo, o overlay #lbox (arrastar/selecionar na previa) fica
+  // escondido -- o calculo de posicao abaixo nao muda, so para de importar.
+  $('lbox').hidden = !sel.logoAtivo;
   const l = sel.customLogo.ativo ? {x:sel.customLogo.x, y:sel.customLogo.y, a:'left'} : sel.logo;
   const lw = (sel.customLogo.ativo ? sel.customLogo.w : 28) / 100 * W;
   const lh = lw * sel.logoVariante.h / sel.logoVariante.w;
@@ -1845,7 +1874,7 @@ function render(){
   }
   posicionarHandle($('tbox-handle'), t, selecionado === 'texto1');
   posicionarHandle($('tbox2-handle'), t2, selecionado === 'texto2' && sel.extra.ativo);
-  posicionarHandle($('lbox-handle'), $('lbox'), selecionado === 'logo');
+  posicionarHandle($('lbox-handle'), $('lbox'), selecionado === 'logo' && sel.logoAtivo);
 
   function posicionarResize(hl, hr, alvo, mostrar){
     hl.hidden = hr.hidden = !mostrar;
@@ -1934,16 +1963,23 @@ function render(){
     'Posicao: [' + posicaoTexto + ']\n' +
     'Cor: [' + corTexto + ']\n' +
     'Alinhamento: [' + alinhamentoTexto + ']\n' +
-    'Tamanho da fonte: [' + tamanhoFontePx + 'px]\n' +
-    'Logo: [' + posicaoLogo + ']\n' +
-    'Variante da logo: [' + sel.logoVariante.k + ']\n' +
-    'Cor do logo: [' + (sel.logoCor.custom ? 'personalizada ' + sel.logoCor.hex : sel.logoCor.k) + ']\n' +
-    'Fundo do logo: [' + (sel.logoFundo.ativo ? 'ativo' : 'inativo') + ']';
-  if (sel.logoFundo.ativo) {
-    const corFundo = sel.logoFundo.col.custom ? 'personalizada ' + sel.logoFundo.col.hex : sel.logoFundo.col.k;
+    'Tamanho da fonte: [' + tamanhoFontePx + 'px]';
+  // FIX 2026-09-10: Logo/Variante da logo/etc sao opcionais -- se a pessoa removeu o
+  // logo (chip "x"), essas linhas somem do comentario inteiras. O parser do n8n
+  // ('Parsear Estado Texto Imagem') e o compositor Python (montador.py) ja tratam a
+  // ausencia de 'Logo:' como peca sem logo, sem precisar de mudanca nenhuma la.
+  if (sel.logoAtivo) {
     saida += '\n' +
-      'Cor do fundo do logo: [' + corFundo + ']\n' +
-      'Opacidade do fundo do logo: [' + sel.logoFundo.opacidadePct + '%]';
+      'Logo: [' + posicaoLogo + ']\n' +
+      'Variante da logo: [' + sel.logoVariante.k + ']\n' +
+      'Cor do logo: [' + (sel.logoCor.custom ? 'personalizada ' + sel.logoCor.hex : sel.logoCor.k) + ']\n' +
+      'Fundo do logo: [' + (sel.logoFundo.ativo ? 'ativo' : 'inativo') + ']';
+    if (sel.logoFundo.ativo) {
+      const corFundo = sel.logoFundo.col.custom ? 'personalizada ' + sel.logoFundo.col.hex : sel.logoFundo.col.k;
+      saida += '\n' +
+        'Cor do fundo do logo: [' + corFundo + ']\n' +
+        'Opacidade do fundo do logo: [' + sel.logoFundo.opacidadePct + '%]';
+    }
   }
 
   saida += '\nFundo do texto: [' + (sel.fundo.ativo ? 'ativo' : 'inativo') + ']';
@@ -2234,6 +2270,31 @@ document.addEventListener('keydown', e => {
     if (dentroDoTexto) return;
     e.preventDefault();
     desfazer();
+  }
+});
+
+// FIX 2026-09-10: Delete/Backspace remove o item selecionado (Texto 2 ou Logo) --
+// mesmo efeito do botao "x" na barra de itens, so mais rapido. Texto 1 NUNCA e
+// removido por aqui (e obrigatorio, sem botao de remover tambem). Guarda contra
+// qualquer campo editavel focado (contenteditable da caixa de texto, inputs
+// numericos, etc.) pra nao interceptar a tecla de apagar letra/digito de dentro
+// de um campo -- mesmo padrao de guarda do Ctrl+Z acima.
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Delete' && e.key !== 'Backspace') return;
+  const foco = document.activeElement;
+  const editandoCampo = foco && (foco.isContentEditable
+    || foco.tagName === 'INPUT' || foco.tagName === 'TEXTAREA');
+  if (editandoCampo) return;
+  if (selecionado === 'texto2' && sel.extra.ativo) {
+    e.preventDefault();
+    sel.extra.ativo = false;
+    selecionado = 'texto1';
+    render();
+  } else if (selecionado === 'logo' && sel.logoAtivo) {
+    e.preventDefault();
+    sel.logoAtivo = false;
+    selecionado = 'texto1';
+    render();
   }
 });
 
